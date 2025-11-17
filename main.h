@@ -7,8 +7,9 @@
 /* Prototype for _printf function */
 int _printf(const char *format, ...);
 
-/* Prototype for _putchar function */
+/* Helper functions */
 int _putchar(char c);
+int print_string(char *s);
 
 #endif /* MAIN_H */
 

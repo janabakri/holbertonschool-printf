@@ -1,43 +1,49 @@
+#include "main.h"
+
+/**
+ * _printf - produces output according to a format
+ * @format: format string containing specifiers
+ *
+ * Return: number of characters printed (excluding null byte)
+ */
 int _printf(const char *format, ...)
 {
-    va_list args;
-    int count = 0;
+	va_list args;
+	int count = 0;
 
-    if (!format || (format[0] == '%' && format[1] == '\0'))
-        return (-1);
+	if (!format || (format[0] == '%' && format[1] == '\0'))
+		return (-1);
 
-    va_start(args, format);
+	va_start(args, format);
 
-    while (*format)
-    {
-        if (*format == '%')
-        {
-            format++;
-            if (*format == '\0')
-                return (-1);
+	while (*format)
+	{
+		if (*format == '%')
+		{
+			format++;
+			if (*format == '\0')
+				return (-1);
 
-            if (*format == 'c')
-                count += _putchar(va_arg(args, int));
-            else if (*format == 's')
-                count += print_string(va_arg(args, char *));
-            else if (*format == '%')
-                count += _putchar('%');
-            else if (*format == 'd' || *format == 'i')
-                count += print_number(va_arg(args, int));
-            else
-                count += _putchar('%');  // لطباعة % إذا كان specifier غير معروف
+			if (*format == 'c')
+				count += _putchar(va_arg(args, int));
+			else if (*format == 's')
+				count += print_string(va_arg(args, char *));
+			else if (*format == '%')
+				count += _putchar('%');
+			else
+				count += _putchar('%'); /* print unknown % literally */
 
-            format++;  // زيادة المؤشر بعد التعامل مع specifier
-        }
-        else
-        {
-            count += _putchar(*format);
-            format++;
-        }
-    }
+			format++;
+		}
+		else
+		{
+			count += _putchar(*format);
+			format++;
+		}
+	}
 
-    va_end(args);
-    return (count);
+	va_end(args);
+	return (count);
 }
 
 
