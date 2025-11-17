@@ -1,6 +1,5 @@
-                                                                                                                                                                                                                                    #include <stdarg.h>
-#include <unistd.h>
 #include "main.h"
+#include <stdarg.h>
 
 /**
  * _printf - produces output according to a format
@@ -26,7 +25,7 @@ int _printf(const char *format, ...)
             if (*p == 'c')
             {
                 char c = va_arg(args, int);
-                write(1, &c, 1);
+                _putchar(c);
                 count++;
             }
             else if (*p == 's')
@@ -36,26 +35,25 @@ int _printf(const char *format, ...)
                     s = "(null)";
                 while (*s)
                 {
-                    write(1, s, 1);
-                    s++;
+                    _putchar(*s++);
                     count++;
                 }
             }
             else if (*p == '%')
             {
-                write(1, "%", 1);
+                _putchar('%');
                 count++;
             }
             else
             {
-                write(1, "%", 1);
-                write(1, p, 1);
+                _putchar('%');
+                _putchar(*p);
                 count += 2;
             }
         }
         else
         {
-            write(1, p, 1);
+            _putchar(*p);
             count++;
         }
     }
