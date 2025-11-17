@@ -1,49 +1,117 @@
 #include "main.h"
-#include <limits.h>
 
 /**
- * print_number - Prints an integer using _putchar
- * @n: Integer to print
- * Return: Number of characters printed
+ * handle_conversion - handles conversion specifiers
+ * @format: pointer to current position in format string
+ * @args: variable arguments list
+ * 
+ * Return: number of characters printed
+ */
+int handle_conversion(const char **format, va_list args)
+{
+    switch (**format)
+    {
+        case 'd':
+        case 'i':
+            return (print_number(va_arg(args, int)));
+        case '%':
+            write(1, "%", 1);
+            return (1);
+        default:
+            write(1, "%", 1);
+            write(1, *format, 1);
+            return (2);
+    }
+}
+
+/**
+ * print_number - prints an integer
+ * @n: integer to print
+ * 
+ * Return: number of characters printed
  */
 int print_number(int n)
 {
-    unsigned int num;
     int count = 0;
+    char buffer[12]; /* Enough for int min: -2147483648 */
+    int i = 0;
+    unsigned int num;
 
     if (n < 0)
     {
-        count += _putchar('-');
-        num = -n;
+        write(1, "-", 1);
+        count++;
+        num = (unsigned int)(-n);
     }
     else
-        num = n;
+    {
+        num = (unsigned int)n;
+    }
 
-    if (num / 10)
-        count += print_number(num / 10);
+    /* Handle zero case */
+    if (num == 0)
+    {
+        write(1, "0", 1);
+        return (count + 1);
+    }
 
-    count += _putchar((num % 10) + '0');
+    /* Convert number to string in reverse order */
+    while (num > 0)
+    {
+        buffer[i++] = (num % 10) + '0';
+        num /= 10;
+    }
+
+    /* Print in correct order */
+    while (i > 0)
+    {
+        write(1, &buffer[--i], 1);
+        count++;
+    }
 
     return (count);
 }
 
 /**
- * print_string - Prints a string using _putchar
- * @s: String to print
- * Return: Number of characters printed
+ * _putchar - writes the character c to stdout
+ * @c: The character to print
+ *
+ * Return: On success 1.
+ * On error, -1 is returned, and errno is set appropriately.
  */
-int print_string(char *s)
+int _putchar(char c)
 {
-    int count = 0;
-
-    if (!s)
-        s = "(null)";
-
-    while (*s)
-    {
-        count += _putchar(*s);
-        s++;
-    }
-    return (count);
+    return (write(1, &c, 1));
 }
 
+/**
+ * print_string - prints a string
+ * @str: string to print
+ * 
+ * Return: number of characters printed
+ */
+int print_string(char *str)
+{
+    int i = 0;
+
+    if (str == NULL)
+        str = "(null)";
+
+    while (str[i])
+    {
+        _putchar(str[i]);
+        i++;
+    }
+    return (i);
+}
+
+/**
+ * print_char - prints a character
+ * @c: character to print
+ * 
+ * Return: number of characters printed (always 1)
+ */
+int print_char(char c)
+{
+    return (_putchar(c));
+}
