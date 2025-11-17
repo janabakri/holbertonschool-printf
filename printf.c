@@ -4,6 +4,7 @@
 /**
  * _printf - produces output according to a format
  * @format: format string
+ *
  * Return: number of characters printed
  */
 int _printf(const char *format, ...)
@@ -22,6 +23,14 @@ int _printf(const char *format, ...)
         if (*p == '%')
         {
             p++;
+            if (!*p)
+            {
+                /* % في نهاية السلسلة */
+                _putchar('%');
+                count++;
+                break;
+            }
+
             if (*p == 'c')
             {
                 char c = va_arg(args, int);
@@ -46,6 +55,7 @@ int _printf(const char *format, ...)
             }
             else
             {
+                /* unknown specifier */
                 _putchar('%');
                 _putchar(*p);
                 count += 2;
