@@ -4,18 +4,17 @@
 #include <stdarg.h>
 #include <unistd.h>
 
-/* Core function */
-int _printf(const char *format);
+int _printf(const char *format, ...);
 
-/* Format processing */
-int process_format(const char *format, va_list args);
-int handle_specifier(const char *format, int *i, va_list args);
-
-/* Helpers */
-int write_char(char c);
+/* Print functions */
 int print_char(va_list args);
 int print_string(va_list args);
 int print_percent(void);
+int print_int(va_list args);
 
-#endif /* MAIN_H */
+/* Helpers */
+int _putchar(char c);
+int print_number(long n);
+
+#endif
 
