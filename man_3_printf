@@ -1,0 +1,31 @@
+.TH _PRINTF 3 "January 2025" "Holberton School"
+.SH NAME
+_printf \- custom implementation of printf
+
+.SH SYNOPSIS
+.B #include "main.h"
+.br
+int _printf(const char *format, ...);
+
+.SH DESCRIPTION
+The _printf function produces output according to a format.
+It handles the following conversion specifiers:
+.TP
+%c
+Print a single character.
+.TP
+%s
+Print a string.
+.TP
+%%
+Print a percent sign.
+.TP
+%d, %i
+Print a signed integer.
+
+.SH RETURN VALUE
+Returns the number of characters printed, excluding the null byte.
+
+.SH AUTHOR
+Bader Abdulaziz Almutairi
+Jana bakri Rasheed Bakri
