@@ -1,109 +1,74 @@
 #include "main.h"
 
 /**
- * _printf - produces output according to a format
- * @format: character string containing format specifiers
- * 
- * Return: number of characters printed (excluding null byte)
+ * _putchar - writes a single character to stdout
+ * @c: character to print
+ *
+ * Return: 1 on success
+ */
+int _putchar(char c)
+{
+    return write(1, &c, 1);
+}
+
+/**
+ * _printf - prints formatted output to stdout
+ * @format: format string
+ *
+ * Return: number of characters printed
  */
 int _printf(const char *format, ...)
 {
     va_list args;
-    int count = 0;
+    int i = 0, count = 0;
+    char *str;
+    char c;
 
-    if (format == NULL)
+    if (!format)
         return (-1);
 
     va_start(args, format);
 
-    while (*format)
+    while (format[i])
     {
-        if (*format == '%')
+        if (format[i] == '%')
         {
-            format++;
-            count += handle_conversion(&format, args);
+            i++;
+            if (!format[i])
+                return (-1); /* % at end of string */
+
+            if (format[i] == 'c') /* Character */
+            {
+                c = (char)va_arg(args, int);
+                count += _putchar(c);
+            }
+            else if (format[i] == 's') /* String */
+            {
+                str = va_arg(args, char *);
+                if (!str)
+                    str = "(null)";
+                while (*str)
+                    count += _putchar(*str++);
+            }
+            else if (format[i] == '%') /* Percent sign */
+            {
+                count += _putchar('%');
+            }
+            else /* Unknown specifier */
+            {
+                count += _putchar('%');
+                count += _putchar(format[i]);
+            }
         }
         else
         {
-            write(1, format, 1);
-            count++;
+            count += _putchar(format[i]);
         }
-        format++;
+        i++;
     }
 
     va_end(args);
-    return (count);
+    return count;
 }
 
-/**
- * handle_conversion - handles conversion specifiers
- * @format: pointer to current position in format string
- * @args: variable arguments list
- * 
- * Return: number of characters printed
- */
-int handle_conversion(const char **format, va_list args)
-{
-    switch (**format)
-    {
-        case 'd':
-        case 'i':
-            return (print_number(va_arg(args, int)));
-        case '%':
-            write(1, "%", 1);
-            return (1);
-        default:
-            write(1, "%", 1);
-            write(1, *format, 1);
-            return (2);
-    }
-}
-
-/**
- * print_number - prints an integer
- * @n: integer to print
- * 
- * Return: number of characters printed
- */
-int print_number(int n)
-{
-    int count = 0;
-    char buffer[12]; /* Enough for int min: -2147483648 */
-    int i = 0;
-    unsigned int num;
-
-    if (n < 0)
-    {
-        write(1, "-", 1);
-        count++;
-        num = -n;
-    }
-    else
-    {
-        num = n;
-    }
-
-    /* Handle zero case */
-    if (num == 0)
-    {
-        write(1, "0", 1);
-        return (count + 1);
-    }
-
-    /* Convert number to string in reverse order */
-    while (num > 0)
-    {
-        buffer[i++] = (num % 10) + '0';
-        num /= 10;
-    }
-
-    /* Print in correct order */
-    while (i > 0)
-    {
-        write(1, &buffer[--i], 1);
-        count++;
-    }
-
-    return (count);
-}
 

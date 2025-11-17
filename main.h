@@ -3,10 +3,12 @@
 
 #include <stdarg.h>
 #include <unistd.h>
-#include <stdlib.h>
 
+/* _printf function prototype */
 int _printf(const char *format, ...);
-int handle_conversion(const char **format, va_list args);
-int print_number(int n);
 
-#endif
+/* _putchar function prototype */
+int _putchar(char c);
+
+#endif /* MAIN_H */
+
