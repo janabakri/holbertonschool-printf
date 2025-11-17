@@ -1,0 +1,1 @@
+The main concept is to build a _printf function that reads a string containing both text and format specifiers, then prints the output correctly to the console. The function handles variadic arguments using the <stdarg.h> library.
