@@ -4,10 +4,11 @@
 #include <stdarg.h>
 #include <unistd.h>
 
-/* _printf function prototype */
+/* Prototype for _printf function */
 int _printf(const char *format, ...);
 
-/* _putchar function prototype */
+/* Prototype for _putchar function */
 int _putchar(char c);
 
 #endif /* MAIN_H */
+
