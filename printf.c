@@ -1,6 +1,7 @@
-#include "main.h"
+#include <stdarg.h>
+#include <unistd.h>
 
-/* ---- Helper functions ---- */
+/* ---- Helpers ---- */
 
 int write_char(char c)
 {
@@ -18,7 +19,7 @@ int print_string(va_list args)
     char *s = va_arg(args, char *);
     int i = 0;
 
-    if (s == NULL)
+    if (!s)
         s = "(null)";
 
     while (s[i])
@@ -41,7 +42,6 @@ int handle_specifier(const char *format, int *i, va_list args)
     int count = 0;
 
     (*i)++;
-
     if (format[*i] == '\0')
         return (-1);
 
@@ -63,7 +63,7 @@ int handle_specifier(const char *format, int *i, va_list args)
 
 int process_format(const char *format, va_list args)
 {
-    int i = 0, count = 0, add;
+    int count = 0, i = 0, add;
 
     while (format[i])
     {
@@ -97,5 +97,14 @@ int _printf(const char *format, ...)
     va_end(args);
 
     return (printed);
+}
+
+/* ---- Example main to test ---- */
+int main(void)
+{
+    _printf("Hello %corld%s %%\n", 'W', "!");
+    _printf("%s\n", NULL);
+    _printf("Just a percent sign: %%\n");
+    return (0);
 }
 
