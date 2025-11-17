@@ -8,17 +8,17 @@
  */
 int _printf(const char *format, ...)
 {
-va_list args;
-int count = 0;
+    va_list args;
+    int count = 0;
 
-if (format == NULL)
-return (-1);
+    if (format == NULL)
+        return (-1);
 
-va_start(args, format);
-count = process_format(format, args);
-va_end(args);
+    va_start(args, format);
+    count = process_format(format, args);
+    va_end(args);
 
-return (count);
+    return (count);
 }
 
 /**
@@ -30,25 +30,24 @@ return (count);
  */
 int process_format(const char *format, va_list args)
 {
-int count = 0, i = 0;
-int specifier_count;
+    int count = 0, i = 0, specifier_count;
 
-while (format[i])
-{
-if (format[i] == '%')
-{
-specifier_count = handle_specifier(format, &i, args);
-if (specifier_count == -1)
-return (-1);
-count += specifier_count;
-}
-else
-{
-count += write_char(format[i]);
-}
-i++;
-}
-return (count);
+    while (format[i])
+    {
+        if (format[i] == '%')
+        {
+            specifier_count = handle_specifier(format, &i, args);
+            if (specifier_count == -1)
+                return (-1);
+            count += specifier_count;
+        }
+        else
+        {
+            count += write_char(format[i]);
+        }
+        i++;
+    }
+    return (count);
 }
 
 /**
@@ -61,26 +60,28 @@ return (count);
  */
 int handle_specifier(const char *format, int *i, va_list args)
 {
-int count = 0;
+    int count = 0;
 
-(*i)++;
-if (format[*i] == '\0')
-return (-1);
+    (*i)++;  /* move past % */
 
-if (format[*i] == 'c')
-count = print_char(args);
-else if (format[*i] == 's')
-count = print_string(args);
-else if (format[*i] == '%')
-count = print_percent(args);
-else
-{
-write(1, "%", 1);
-write(1, &format[*i], 1);
-count = 2;
-}
+    if (format[*i] == '\0')
+        return (-1);
 
-return (count);
+    if (format[*i] == 'c')
+        count = print_char(args);
+    else if (format[*i] == 's')
+        count = print_string(args);
+    else if (format[*i] == '%')
+        count = write(1, "%", 1); /* fixed: no args needed */
+    else
+    {
+        /* print unknown specifier as literal text */
+        write(1, "%", 1);
+        write(1, &format[*i], 1);
+        count = 2;
+    }
+
+    return (count);
 }
 
 /**
@@ -91,6 +92,6 @@ return (count);
  */
 int write_char(char c)
 {
-return (write(1, &c, 1));
+    return (write(1, &c, 1));
 }
 
