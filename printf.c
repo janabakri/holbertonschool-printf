@@ -1,7 +1,7 @@
-#include <stdarg.h>
-#include <unistd.h>
+#include "main.h"
 
 /* ---- Helper functions ---- */
+
 int write_char(char c)
 {
     return (write(1, &c, 1));
@@ -34,7 +34,8 @@ int print_percent(void)
     return (write(1, "%", 1));
 }
 
-/* ---- Core printf internals ---- */
+/* ---- Core format processing ---- */
+
 int handle_specifier(const char *format, int *i, va_list args)
 {
     int count = 0;
@@ -56,6 +57,7 @@ int handle_specifier(const char *format, int *i, va_list args)
         write(1, &format[*i], 1);
         count = 2;
     }
+
     return (count);
 }
 
@@ -76,10 +78,12 @@ int process_format(const char *format, va_list args)
             count += write_char(format[i]);
         i++;
     }
+
     return (count);
 }
 
-/* ---- MAIN PRINTF ---- */
+/* ---- MAIN _printf FUNCTION ---- */
+
 int _printf(const char *format, ...)
 {
     va_list args;
@@ -94,15 +98,4 @@ int _printf(const char *format, ...)
 
     return (printed);
 }
-
-/* ---- Optional main for testing ----
-int main(void)
-{
-    _printf("Hello %corld%s %%!\n", 'W', "!");
-    _printf("%s\n", NULL);
-    _printf("Just a percent sign: %%\n");
-    _printf("%");
-    return (0);
-}
-*/
 
