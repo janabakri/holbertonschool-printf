@@ -1,42 +1,16 @@
-The _printf project is a custom implementation of the standard C printf function. It allows formatted output to the standard output (stdout) and supports both basic and advanced format specifiers.
+Implementing the _printf function is one of the most iconic projects in the Holberton School low-level programming curriculum. It pushes students to look beneath the surface of the standard C library and understand how formatting, buffering, and variadic functions actually work behind the scenes.
 
-This project demonstrates the use of variadic functions, string and number handling, buffer optimization, and custom formatting.
-Edge Cases
+At its core, _printf is a custom re-creation of the well-known printf function in C. While the standard library version is extremely powerful and packed with features, this project focuses on building that functionality step by step—starting from the simplest behavior and gradually expanding until the function becomes robust and versatile.
 
-NULL format  return -1
+The function takes a format string and a variable number of arguments. As it scans through the string, it prints ordinary characters directly, but reacts specially whenever it encounters the % symbol. Each % introduces a conversion specifier, a code that tells _printf how to interpret and print the next argument. In the early stages of the project, the supported specifiers include characters (%c), strings (%s), percent signs (%%), and signed integers (%d and %i). As the project grows, additional specifiers like %b, %u, %o, %x, %X, %S, and %p are added, along with support for flags, width, precision, and length modifiers—all of which mirror the behavior of the standard printf.
 
-Unknown specifier  print % and the character
+One of the most educational aspects of this project is the use of the stdarg.h macros to handle the variable arguments. Students learn to iterate through arguments dynamically using va_list, va_start, and va_arg, giving them a deeper appreciation for how C manages functions with flexible numbers of parameters.
 
-Large strings  handled correctly
+Another important element is the strict adherence to the Holberton coding style: no global variables, no more than five functions per file, and clear, modular implementation. This encourages clean code organization and thoughtful design.
 
-Mixing multiple specifiers  handled correctly
+Through countless tests, debugging sessions, and incremental feature additions, _printf evolves from a simple text printer into a fully functional formatting engine. Beyond strengthening technical skills, the project builds teamwork, communication, and problem-solving abilities—skills that matter just as much as the code itself.
 
-Non-printable characters in strings %S conversion
-Man Page
+Authors
 
-man_3_printf explains:
-
-Function prototype
-
-Supported specifiers
-
-Flags, width, precision, length modifiers
-
-Example usage with expected output
-Conclusion
-
-The _printf project demonstrates:
-
-Variadic functions in C
-
-Safe handling of strings and characters
-
-Number conversions in multiple bases
-
-Custom specifiers (%b, %S, %r, %R)
-
-Buffer optimization for efficient output
-
-Proper handling of flags, width, and precision
-
-This project serves as a foundation for implementing a full-featured printf function and enhances understanding of low-level output management in C.
+Jana Rasheed Bakri
+Badr Abdulaziz Almutairi

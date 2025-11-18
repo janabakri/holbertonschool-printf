@@ -2,6 +2,11 @@
 .SH NAME
 _printf \- formatted output conversion
 
+.SH AUTHORS
+Jana Rasheed Bakri
+.br
+Badr Abdulaziz Almutairi
+
 .SH SYNOPSIS
 .B #include "main.h"
 .br
@@ -93,10 +98,4 @@ Print a percent sign:
 
 .SH SEE ALSO
 printf(3)
-
-.SH AUTHORS
-Jana Rasheed Bakri
-.br
-Badr Abdulaziz Almutairi
-
 
