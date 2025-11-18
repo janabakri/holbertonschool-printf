@@ -20,13 +20,6 @@ int _printf(const char *format, ...)
         if (format[i] == '%')
         {
             i++;
-            /* Handle trailing % */
-            if (format[i] == '\0')
-            {
-                va_end(args);
-                return (-1);
-            }
-            
             if (format[i] == 'c')
                 count += print_char(args);
             else if (format[i] == 's')
@@ -35,8 +28,6 @@ int _printf(const char *format, ...)
                 count += print_percent();
             else if (format[i] == 'd' || format[i] == 'i')
                 count += print_int(args);
-            else if (format[i] == 'b')
-                count += print_binary(args);
             else
             {
                 count += write(1, "%", 1);
