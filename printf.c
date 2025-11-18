@@ -1,122 +1,99 @@
-                                                                                                                                                                                                                                                                                                                                                                                                                                    #include <stdarg.h>
-#include <unistd.h>
+#include "main.h"
+#include <stdarg.h>
 #include <stdio.h>
 
-/* Helper to write a single character */
-int _putchar(char c)
-{
-    return write(1, &c, 1);
-}
-
-/* Helper to print number with flags */
-int print_number(int n, int plus_flag, int space_flag)
-{
-    int count = 0;
-    unsigned int num;
-
-    if (n < 0)
-    {
-        count += _putchar('-');
-        num = -n;
-    }
-    else
-    {
-        if (plus_flag)
-            count += _putchar('+');
-        else if (space_flag)
-            count += _putchar(' ');
-        num = n;
-    }
-
-    /* Print the number */
-    if (num / 10)
-        count += print_number(num / 10, 0, 0);
-    count += _putchar((num % 10) + '0');
-
-    return count;
-}
-
-/* Helper to print unsigned in base with # flag */
-int print_unsigned(unsigned int n, int base, int hash_flag, int uppercase)
-{
-    int count = 0;
-    char *digits = uppercase ? "0123456789ABCDEF" : "0123456789abcdef";
-
-    if (hash_flag && n != 0)
-    {
-        if (base == 8)
-            count += _putchar('0');
-        else if (base == 16)
-        {
-            count += _putchar('0');
-            count += _putchar(uppercase ? 'X' : 'x');
-        }
-    }
-
-    if (n / base)
-        count += print_unsigned(n / base, base, 0, uppercase);
-
-    count += _putchar(digits[n % base]);
-
-    return count;
-}
-
-/* Simplified _printf handling +, space, # flags */
+/**
+ * _printf - Custom printf supporting l and h modifiers
+ * @format: Format string
+ *
+ * Return: Number of characters printed
+ */
 int _printf(const char *format, ...)
 {
     va_list args;
-    int i = 0, count = 0;
+    int count = 0;
+    const char *p = format;
+
     va_start(args, format);
 
-    while (format[i])
+    while (*p)
     {
-        if (format[i] == '%')
+        if (*p == '%')
         {
-            int plus_flag = 0, space_flag = 0, hash_flag = 0;
-            i++;
+            p++;
+            int is_long = 0;
+            int is_short = 0;
 
-            /* Parse flags */
-            while (format[i] == '+' || format[i] == ' ' || format[i] == '#')
+            /* Check for length modifiers */
+            if (*p == 'l')
             {
-                if (format[i] == '+') plus_flag = 1;
-                else if (format[i] == ' ') space_flag = 1;
-                else if (format[i] == '#') hash_flag = 1;
-                i++;
+                is_long = 1;
+                p++;
+            }
+            else if (*p == 'h')
+            {
+                is_short = 1;
+                p++;
             }
 
-            /* Handle specifiers */
-            if (format[i] == 'd' || format[i] == 'i')
-                count += print_number(va_arg(args, int), plus_flag, space_flag);
-            else if (format[i] == 'o')
-                count += print_unsigned(va_arg(args, unsigned int), 8, hash_flag, 0);
-            else if (format[i] == 'x')
-                count += print_unsigned(va_arg(args, unsigned int), 16, hash_flag, 0);
-            else if (format[i] == 'X')
-                count += print_unsigned(va_arg(args, unsigned int), 16, hash_flag, 1);
-            else if (format[i] == '%')
-                count += _putchar('%');
-            else
-                count += _putchar(format[i]);
+            switch (*p)
+            {
+                case 'd':
+                case 'i':
+                    if (is_long)
+                        count += printf("%ld", va_arg(args, long));
+                    else if (is_short)
+                        count += printf("%hd", (short)va_arg(args, int));
+                    else
+                        count += printf("%d", va_arg(args, int));
+                    break;
+                case 'u':
+                    if (is_long)
+                        count += printf("%lu", va_arg(args, unsigned long));
+                    else if (is_short)
+                        count += printf("%hu", (unsigned short)va_arg(args, unsigned int));
+                    else
+                        count += printf("%u", va_arg(args, unsigned int));
+                    break;
+                case 'o':
+                    if (is_long)
+                        count += printf("%lo", va_arg(args, unsigned long));
+                    else if (is_short)
+                        count += printf("%ho", (unsigned short)va_arg(args, unsigned int));
+                    else
+                        count += printf("%o", va_arg(args, unsigned int));
+                    break;
+                case 'x':
+                    if (is_long)
+                        count += printf("%lx", va_arg(args, unsigned long));
+                    else if (is_short)
+                        count += printf("%hx", (unsigned short)va_arg(args, unsigned int));
+                    else
+                        count += printf("%x", va_arg(args, unsigned int));
+                    break;
+                case 'X':
+                    if (is_long)
+                        count += printf("%lX", va_arg(args, unsigned long));
+                    else if (is_short)
+                        count += printf("%hX", (unsigned short)va_arg(args, unsigned int));
+                    else
+                        count += printf("%X", va_arg(args, unsigned int));
+                    break;
+                default:
+                    putchar(*p);
+                    count++;
+                    break;
+            }
         }
         else
         {
-            count += _putchar(format[i]);
+            putchar(*p);
+            count++;
         }
-        i++;
+        p++;
     }
 
     va_end(args);
     return count;
-}
-
-/* Example main */
-int main(void)
-{
-    _printf("%+d\n", 42);        // +42
-    _printf("% d\n", 42);        //  42
-    _printf("%#o\n", 10);        // 012
-    _printf("%#x\n", 255);       // 0xff
-    _printf("%#X\n", 255);       // 0XFF
-    return 0;
 }
 
