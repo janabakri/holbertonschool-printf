@@ -1,14 +1,16 @@
 #include "main.h"
 
 /**
- * _printf - Custom printf function
+ * _printf - Custom printf function (mandatory tasks only)
  * @format: Format string
- * Return: Number of characters printed
+ * Return: Number of characters printed, or -1 on error
  */
 int _printf(const char *format, ...)
 {
     va_list args;
     int i = 0, count = 0;
+    char c;
+    char *s;
 
     if (format == NULL)
         return (-1);
@@ -20,16 +22,37 @@ int _printf(const char *format, ...)
         if (format[i] == '%')
         {
             i++;
+
+            /* ----- IMPORTANT FIX ----- */
+            if (!format[i])   /* format ends with % */
+            {
+                va_end(args);
+                return (-1);
+            }
+
             if (format[i] == 'c')
-                count += print_char(args);
+            {
+                c = (char)va_arg(args, int);
+                count += write(1, &c, 1);
+            }
             else if (format[i] == 's')
-                count += print_string(args);
+            {
+                s = va_arg(args, char *);
+                if (!s)
+                    s = "(null)";
+                while (*s)
+                {
+                    count += write(1, s, 1);
+                    s++;
+                }
+            }
             else if (format[i] == '%')
-                count += print_percent();
-            else if (format[i] == 'd' || format[i] == 'i')
-                count += print_int(args);
+            {
+                count += write(1, "%", 1);
+            }
             else
             {
+                /* For unsupported specifiers: print literally */
                 count += write(1, "%", 1);
                 count += write(1, &format[i], 1);
             }
@@ -38,6 +61,7 @@ int _printf(const char *format, ...)
         {
             count += write(1, &format[i], 1);
         }
+
         i++;
     }
 
