@@ -1,137 +1,123 @@
-#include "main.h"
-#include <stdarg.h>
-#include <limits.h>
+unsigned short num = (unsigned short)va_arg(args, unsigned int);
+                return print_number_base(num, 16, 0);
+            }
+        case 'X':
+            {
+                unsigned short num = (unsigned short)va_arg(args, unsigned int);
+                return print_number_base(num, 16, 1);
+            }
+        default:
+            /* If no valid specifier after 'h', print both characters */
+            return _putchar('h') + _putchar(**format);
+    }
+}
 
 /**
- * _printf - prints formatted output to stdout
- * @format: format string
- * Return: number of characters printed
+ * print_number_base - Print number in specified base
+ * @n: Number to print
+ * @base: Base to use (2-16)
+ * @uppercase: Use uppercase for hex (1) or lowercase (0)
+ * Return: Number of characters printed
  */
-int _printf(const char *format, ...)
+int print_number_base(unsigned long n, unsigned int base, int uppercase)
 {
-    va_list args;
-    int count;
-    char *s;
-    char c;
-    long lnum;
-    unsigned long unum;
-    void *ptr;
-    int is_long;
-    int is_short;
-    char *str_ptr;
+    int count = 0;
+    char *digits = uppercase ? "0123456789ABCDEF" : "0123456789abcdef";
+    
+    if (base < 2 || base > 16)
+        return 0;
 
-    va_start(args, format);
-    count = 0;
-
-    while (*format)
-    {
-        is_long = 0;
-        is_short = 0;
-
-        if (*format == '%')
-        {
-            format++;
-
-            /* Check length modifiers */
-            if (*format == 'l')
-            {
-                is_long = 1;
-                format++;
-            }
-            else if (*format == 'h')
-            {
-                is_short = 1;
-                format++;
-            }
-
-            /* Conversion specifiers */
-            if (*format == 'c')
-            {
-                c = va_arg(args, int);
-                count += _putchar(c);
-            }
-            else if (*format == 's')
-            {
-                s = va_arg(args, char *);
-                if (!s)
-                    s = "(null)";
-                while (*s)
-                {
-                    count += _putchar(*s);
-                    s++;
-                }
-            }
-            else if (*format == 'S') /* Custom non-printable specifier */
-            {
-                s = va_arg(args, char *);
-                if (!s)
-                    s = "(null)";
-                str_ptr = s;
-                while (*str_ptr)
-                {
-                    unsigned char uc = *str_ptr;
-                    if (uc < 32 || uc >= 127)
-                    {
-                        count += _putchar('\\');
-                        count += _putchar('x');
-                        count += _putchar("0123456789ABCDEF"[uc / 16]);
-                        count += _putchar("0123456789ABCDEF"[uc % 16]);
-                    }
-                    else
-                        count += _putchar(uc);
-                    str_ptr++;
-                }
-            }
-            else if (*format == 'd' || *format == 'i')
-            {
-                if (is_long)
-                    lnum = va_arg(args, long);
-                else if (is_short)
-                    lnum = (short)va_arg(args, int);
-                else
-                    lnum = va_arg(args, int);
-                count += print_number(lnum);
-            }
-            else if (*format == 'u' || *format == 'o' ||
-                     *format == 'x' || *format == 'X')
-            {
-                if (is_long)
-                    unum = va_arg(args, unsigned long);
-                else if (is_short)
-                    unum = (unsigned short)va_arg(args, unsigned int);
-                else
-                    unum = va_arg(args, unsigned int);
-                count += print_unsigned(unum, *format);
-            }
-            else if (*format == 'p')
-            {
-                ptr = va_arg(args, void *);
-                count += print_pointer(ptr);
-            }
-            else
-            {
-                count += _putchar('%');
-                if (*format)
-                    count += _putchar(*format);
-            }
-        }
-        else
-        {
-            count += _putchar(*format);
-        }
-
-        format++;
-    }
-
-    va_end(args);
+    if (n / base)
+        count += print_number_base(n / base, base, uppercase);
+    
+    count += _putchar(digits[n % base]);
     return count;
 }
 
-/* Helper functions */
+/**
+ * print_number - Print signed integer
+ * @args: Variable arguments list
+ * Return: Number of characters printed
+ */
+int print_number(va_list args)
+{
+    int num = va_arg(args, int);
+    
+    if (num < 0)
+    {
+        _putchar('-');
+        return print_number_base(-num, 10, 0) + 1;
+    }
+    return print_number_base(num, 10, 0);
+}
+
+/**
+ * print_unsigned - Print unsigned integer
+ * @args: Variable arguments list
+ * @base: Base to use
+ * @uppercase: Use uppercase for hex
+ * Return: Number of characters printed
+ */
+int print_unsigned(va_list args, int base, int uppercase)
+{
+    unsigned int num = va_arg(args, unsigned int);
+    return print_number_base(num, base, uppercase);
+}
+
+/**
+ * print_octal - Print octal number
+ * @args: Variable arguments list
+ * Return: Number of characters printed
+ */
+int print_octal(va_list args)
+{
+    return print_unsigned(args, 8, 0);
+}
+
+/**
+ * print_hex - Print hexadecimal number
+ * @args: Variable arguments list
+ * @uppercase: Use uppercase letters
+ * Return: Number of characters printed
+ */
+int print_hex(va_list args, int uppercase)
+{
+    return print_unsigned(args, 16, uppercase);
+}
+
+/* Basic conversion handlers */
+int print_char(va_list args)
+{
+    return _putchar(va_arg(args, int));
+}
+
+int print_string(va_list args)
+{
+    char *str = va_arg(args, char *);
+    int count = 0;
+    
+    if (!str)
+        str = "(null)";
+    
+    while (*str)
+        count += _putchar(*str++);
+    
+    return count;
+}
+
+int print_percent(va_list args)
+{
+    (void)args;
+    return _putchar('%');
+}
+
+/**
+ * _putchar - Write a character to stdout
+ * @c: Character to print
+ * Return: 1 on success, -1 on error
+ */
 int _putchar(char c)
 {
     return write(1, &c, 1);
 }
-
-/* You need to implement print_number, print_unsigned, print_pointer in C90 style */
 
