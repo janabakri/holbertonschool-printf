@@ -1,150 +1,155 @@
-#include "main.h"
-#include <string.h>
+#include <stdarg.h>
+#include <unistd.h>
+#include <limits.h>
 
 /* Flush buffer to stdout */
 int flush_buffer(char *buffer, int *buff_index)
 {
-    int written = write(1, buffer, *buff_index);
-    *buff_index = 0;
+    int written = 0;
+
+    if (*buff_index > 0)
+    {
+        written = write(1, buffer, *buff_index);
+        *buff_index = 0;
+    }
     return written;
 }
 
-/* Add a character to buffer */
+/* Add a single character to buffer */
 int buffer_char(char c, char *buffer, int *buff_index)
 {
     int count = 0;
-    buffer[*buff_index] = c;
-    (*buff_index)++;
-    if (*buff_index == BUFFER_SIZE)
+
+    buffer[(*buff_index)++] = c;
+    if (*buff_index == 1024)
         count += flush_buffer(buffer, buff_index);
-    return count;
+    return count + 1;
 }
 
 /* Add a string to buffer */
 int buffer_string(char *s, char *buffer, int *buff_index)
 {
     int count = 0;
+    int i;
+
     if (!s)
         s = "(null)";
-    while (*s)
-        count += buffer_char(*s++, buffer, buff_index);
+    for (i = 0; s[i]; i++)
+        count += buffer_char(s[i], buffer, buff_index);
     return count;
 }
 
-/* Print number in given base to buffer */
-int buffer_number(unsigned int n, int base, char *digits, char *buffer, int *buff_index)
+/* Add number to buffer in given base */
+int buffer_number(long n, int base, char *digits, char *buffer, int *buff_index)
 {
-    char temp[32];
-    int i = 0, count = 0;
+    int count = 0;
+    unsigned long num;
+    char rev[65];
+    int i = 0, j;
 
-    if (n == 0)
-        return buffer_char('0', buffer, buff_index);
-
-    while (n)
+    if (base == 10 && n < 0)
     {
-        temp[i++] = digits[n % base];
-        n /= base;
+        count += buffer_char('-', buffer, buff_index);
+        num = (unsigned long)(-n);
+    }
+    else
+        num = (unsigned long)n;
+
+    if (num == 0)
+        return count + buffer_char('0', buffer, buff_index);
+
+    while (num > 0)
+    {
+        rev[i++] = digits[num % base];
+        num /= base;
     }
 
-    while (i--)
-        count += buffer_char(temp[i], buffer, buff_index);
+    for (j = i - 1; j >= 0; j--)
+        count += buffer_char(rev[j], buffer, buff_index);
 
     return count;
 }
 
-/* Print binary */
+/* Wrapper for binary */
 int buffer_binary(unsigned int n, char *buffer, int *buff_index)
 {
     return buffer_number(n, 2, "01", buffer, buff_index);
 }
 
-/* Print unsigned decimal */
+/* Wrapper for unsigned decimal */
 int buffer_unsigned(unsigned int n, char *buffer, int *buff_index)
 {
     return buffer_number(n, 10, "0123456789", buffer, buff_index);
 }
 
-/* Print octal */
+/* Wrapper for octal */
 int buffer_octal(unsigned int n, char *buffer, int *buff_index)
 {
     return buffer_number(n, 8, "01234567", buffer, buff_index);
 }
 
-/* Print lowercase hex */
+/* Wrapper for hex lowercase */
 int buffer_hex(unsigned int n, char *buffer, int *buff_index)
 {
     return buffer_number(n, 16, "0123456789abcdef", buffer, buff_index);
 }
 
-/* Print uppercase hex */
+/* Wrapper for hex uppercase */
 int buffer_HEX(unsigned int n, char *buffer, int *buff_index)
 {
     return buffer_number(n, 16, "0123456789ABCDEF", buffer, buff_index);
 }
 
-/* Main _printf with buffer */
+/* The main _printf function */
 int _printf(const char *format, ...)
 {
     va_list args;
-    int i = 0, count = 0, buff_index = 0;
-    char buffer[BUFFER_SIZE];
-    char c, *s;
-    unsigned int n;
+    int i, count = 0;
+    char buffer[1024];
+    int buff_index = 0;
 
     if (!format)
         return -1;
 
     va_start(args, format);
 
-    while (format[i])
+    for (i = 0; format[i]; i++)
     {
         if (format[i] == '%')
         {
             i++;
             if (!format[i])
-                return -1;
-
+                break;
             switch (format[i])
             {
                 case 'c':
-                    c = va_arg(args, int);
-                    count += buffer_char(c, buffer, &buff_index);
+                    count += buffer_char(va_arg(args, int), buffer, &buff_index);
                     break;
-
                 case 's':
-                    s = va_arg(args, char *);
-                    count += buffer_string(s, buffer, &buff_index);
+                    count += buffer_string(va_arg(args, char *), buffer, &buff_index);
                     break;
-
                 case '%':
                     count += buffer_char('%', buffer, &buff_index);
                     break;
-
-                case 'b':
-                    n = va_arg(args, unsigned int);
-                    count += buffer_binary(n, buffer, &buff_index);
+                case 'd':
+                case 'i':
+                    count += buffer_number(va_arg(args, int), 10, "0123456789", buffer, &buff_index);
                     break;
-
                 case 'u':
-                    n = va_arg(args, unsigned int);
-                    count += buffer_unsigned(n, buffer, &buff_index);
+                    count += buffer_unsigned(va_arg(args, unsigned int), buffer, &buff_index);
                     break;
-
                 case 'o':
-                    n = va_arg(args, unsigned int);
-                    count += buffer_octal(n, buffer, &buff_index);
+                    count += buffer_octal(va_arg(args, unsigned int), buffer, &buff_index);
                     break;
-
                 case 'x':
-                    n = va_arg(args, unsigned int);
-                    count += buffer_hex(n, buffer, &buff_index);
+                    count += buffer_hex(va_arg(args, unsigned int), buffer, &buff_index);
                     break;
-
                 case 'X':
-                    n = va_arg(args, unsigned int);
-                    count += buffer_HEX(n, buffer, &buff_index);
+                    count += buffer_HEX(va_arg(args, unsigned int), buffer, &buff_index);
                     break;
-
+                case 'b':
+                    count += buffer_binary(va_arg(args, unsigned int), buffer, &buff_index);
+                    break;
                 default:
                     count += buffer_char('%', buffer, &buff_index);
                     count += buffer_char(format[i], buffer, &buff_index);
@@ -154,162 +159,10 @@ int _printf(const char *format, ...)
         {
             count += buffer_char(format[i], buffer, &buff_index);
         }
-        i++;
-#include "main.h"
-#include <string.h>
-
-/* Flush buffer to stdout */
-int flush_buffer(char *buffer, int *buff_index)
-{
-    int written = write(1, buffer, *buff_index);
-    *buff_index = 0;
-    return written;
-}
-
-/* Add a character to buffer */
-int buffer_char(char c, char *buffer, int *buff_index)
-{
-    int count = 0;
-    buffer[*buff_index] = c;
-    (*buff_index)++;
-    if (*buff_index == BUFFER_SIZE)
-        count += flush_buffer(buffer, buff_index);
-    return count;
-}
-
-/* Add a string to buffer */
-int buffer_string(char *s, char *buffer, int *buff_index)
-{
-    int count = 0;
-    if (!s)
-        s = "(null)";
-    while (*s)
-        count += buffer_char(*s++, buffer, buff_index);
-    return count;
-}
-
-/* Print number in given base to buffer */
-int buffer_number(unsigned int n, int base, char *digits, char *buffer, int *buff_index)
-{
-    char temp[32];
-    int i = 0, count = 0;
-
-    if (n == 0)
-        return buffer_char('0', buffer, buff_index);
-
-    while (n)
-    {
-        temp[i++] = digits[n % base];
-        n /= base;
     }
 
-    while (i--)
-        count += buffer_char(temp[i], buffer, buff_index);
-
+    count += flush_buffer(buffer, &buff_index);
+    va_end(args);
     return count;
 }
-
-/* Print binary */
-int buffer_binary(unsigned int n, char *buffer, int *buff_index)
-{
-    return buffer_number(n, 2, "01", buffer, buff_index);
-}
-
-/* Print unsigned decimal */
-int buffer_unsigned(unsigned int n, char *buffer, int *buff_index)
-{
-    return buffer_number(n, 10, "0123456789", buffer, buff_index);
-}
-
-/* Print octal */
-int buffer_octal(unsigned int n, char *buffer, int *buff_index)
-{
-    return buffer_number(n, 8, "01234567", buffer, buff_index);
-}
-
-/* Print lowercase hex */
-int buffer_hex(unsigned int n, char *buffer, int *buff_index)
-{
-    return buffer_number(n, 16, "0123456789abcdef", buffer, buff_index);
-}
-
-/* Print uppercase hex */
-int buffer_HEX(unsigned int n, char *buffer, int *buff_index)
-{
-    return buffer_number(n, 16, "0123456789ABCDEF", buffer, buff_index);
-}
-
-/* Main _printf with buffer */
-int _printf(const char *format, ...)
-{
-    va_list args;
-    int i = 0, count = 0, buff_index = 0;
-    char buffer[BUFFER_SIZE];
-    char c, *s;
-    unsigned int n;
-
-    if (!format)
-        return -1;
-
-    va_start(args, format);
-
-    while (format[i])
-    {
-        if (format[i] == '%')
-        {
-            i++;
-            if (!format[i])
-                return -1;
-
-            switch (format[i])
-            {
-                case 'c':
-                    c = va_arg(args, int);
-                    count += buffer_char(c, buffer, &buff_index);
-                    break;
-
-                case 's':
-                    s = va_arg(args, char *);
-                    count += buffer_string(s, buffer, &buff_index);
-                    break;
-
-                case '%':
-                    count += buffer_char('%', buffer, &buff_index);
-                    break;
-
-                case 'b':
-                    n = va_arg(args, unsigned int);
-                    count += buffer_binary(n, buffer, &buff_index);
-                    break;
-
-                case 'u':
-                    n = va_arg(args, unsigned int);
-                    count += buffer_unsigned(n, buffer, &buff_index);
-                    break;
-
-                case 'o':
-                    n = va_arg(args, unsigned int);
-                    count += buffer_octal(n, buffer, &buff_index);
-                    break;
-
-                case 'x':
-                    n = va_arg(args, unsigned int);
-                    count += buffer_hex(n, buffer, &buff_index);
-                    break;
-
-                case 'X':
-                    n = va_arg(args, unsigned int);
-                    count += buffer_HEX(n, buffer, &buff_index);
-                    break;
-
-                default:
-                    count += buffer_char('%', buffer, &buff_index);
-                    count += buffer_char(format[i], buffer, &buff_index);
-            }
-        }
-        else
-        {
-            count += buffer_char(format[i], buffer, &buff_index);
-        }
-        i++;
 
