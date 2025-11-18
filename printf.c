@@ -1,11 +1,10 @@
 #include <stdarg.h>
 #include <unistd.h>
-#include <limits.h>
 
-/* حجم البافر */
+/* Buffer size */
 #define BUF_SIZE 1024
 
-/* دالة لافراغ البافر */
+/* Flush buffer to stdout */
 int flush_buffer(char *buffer, int *index)
 {
     if (*index > 0)
@@ -16,7 +15,7 @@ int flush_buffer(char *buffer, int *index)
     return 0;
 }
 
-/* دالة لإضافة حرف للبافر */
+/* Add a single character to buffer */
 int buffer_char(char c, char *buffer, int *index)
 {
     buffer[(*index)++] = c;
@@ -25,7 +24,7 @@ int buffer_char(char c, char *buffer, int *index)
     return 1;
 }
 
-/* دالة لإضافة سلسلة للبافر */
+/* Add a string to buffer */
 int buffer_string(char *s, char *buffer, int *index)
 {
     int len = 0;
@@ -37,7 +36,7 @@ int buffer_string(char *s, char *buffer, int *index)
     return len;
 }
 
-/* دالة لتحويل رقم إلى سلسلة في base معين */
+/* Convert number to given base and add to buffer */
 int buffer_number(unsigned int n, int base, char *digits, char *buffer, int *index)
 {
     char tmp[32];
@@ -58,7 +57,7 @@ int buffer_number(unsigned int n, int base, char *digits, char *buffer, int *ind
     return len;
 }
 
-/* دالة خاصة للـ signed int */
+/* Handle signed integers */
 int buffer_signed(int n, char *buffer, int *index)
 {
     unsigned int num;
@@ -76,7 +75,32 @@ int buffer_signed(int n, char *buffer, int *index)
     return len;
 }
 
-/* الدالة الرئيسية _printf */
+/* Handle custom %S specifier */
+int buffer_S(char *s, char *buffer, int *index)
+{
+    int len = 0;
+    unsigned char c;
+
+    while ((c = (unsigned char)*s++))
+    {
+        if ((c > 0 && c < 32) || c >= 127)
+        {
+            len += buffer_char('\\', buffer, index);
+            len += buffer_char('x', buffer, index);
+            /* high nibble */
+            len += buffer_char("0123456789ABCDEF"[c / 16], buffer, index);
+            /* low nibble */
+            len += buffer_char("0123456789ABCDEF"[c % 16], buffer, index);
+        }
+        else
+        {
+            len += buffer_char(c, buffer, index);
+        }
+    }
+    return len;
+}
+
+/* Main _printf function */
 int _printf(const char *format, ...)
 {
     va_list args;
@@ -95,7 +119,7 @@ int _printf(const char *format, ...)
             continue;
         }
 
-        format++; /* تخطي % */
+        format++; /* skip % */
 
         switch (*format)
         {
@@ -104,6 +128,9 @@ int _printf(const char *format, ...)
                 break;
             case 's':
                 len += buffer_string(va_arg(args, char *), buffer, &buff_index);
+                break;
+            case 'S':
+                len += buffer_S(va_arg(args, char *), buffer, &buff_index);
                 break;
             case 'd':
             case 'i':
