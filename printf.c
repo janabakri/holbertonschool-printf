@@ -1,36 +1,78 @@
+#include <stdarg.h>
+#include "main.h"
+
+int _printf(const char *format, ...)
+{
+    va_list args;
+    int count = 0;
+
+    if (!format)
+        return (-1);
+
+    va_start(args, format);
+
+    while (*format)
+    {
+        if (*format == '%')
+        {
+            format++;
+            if (*format == '\0')
+                break;
+            count += handle_conversion(&format, args);
+        }
+        else
+        {
+            count += _putchar(*format);
+        }
+        format++;
+    }
+
+    va_end(args);
+    return count;
+}
+
+int handle_conversion(const char **format, va_list args)
+{
+    if (**format == 'l')
+        return handle_long(format, args);
+
+    if (**format == 'h')
+        return handle_short(format, args);
+
+    switch (**format)
+    {
+        case 'c':
+            return print_char(args);
+        case 's':
+            return print_string(args);
+        case '%':
+            return print_percent(args);
+        case 'd':
+        case 'i':
+            return print_number(args);
+        default:
+            return _putchar('%') + _putchar(**format);
+    }
+}
+
 int handle_long(const char **format, va_list args)
 {
-    long lnum;
+    long num;
     unsigned long unum;
 
     (*format)++; /* Skip 'l' */
-
-    if (**format == '\0')
-        return _putchar('l');
 
     switch (**format)
     {
         case 'd':
         case 'i':
-            lnum = va_arg(args, long);
-            if (lnum < 0)
+            num = va_arg(args, long);
+            if (num < 0)
             {
                 _putchar('-');
-                return print_number_base((unsigned long)(-lnum), 10, 0) + 1;
+                return print_number_base((unsigned long)(-num), 10, 0) + 1;
             }
-            return print_number_base((unsigned long)lnum, 10, 0);
-        case 'u':
-            unum = va_arg(args, unsigned long);
-            return print_number_base(unum, 10, 0);
-        case 'o':
-            unum = va_arg(args, unsigned long);
-            return print_number_base(unum, 8, 0);
-        case 'x':
-            unum = va_arg(args, unsigned long);
-            return print_number_base(unum, 16, 0);
-        case 'X':
-            unum = va_arg(args, unsigned long);
-            return print_number_base(unum, 16, 1);
+            return print_number_base((unsigned long)num, 10, 0);
         default:
             return _putchar('l') + _putchar(**format);
     }
@@ -38,44 +80,22 @@ int handle_long(const char **format, va_list args)
 
 int handle_short(const char **format, va_list args)
 {
-    int inum;
-    short snum;
-    unsigned int uinum;
-    unsigned short usnum;
+    int num;
+    unsigned int unum;
 
     (*format)++; /* Skip 'h' */
-
-    if (**format == '\0')
-        return _putchar('h');
 
     switch (**format)
     {
         case 'd':
         case 'i':
-            inum = va_arg(args, int);
-            snum = (short)inum;
-            if (snum < 0)
+            num = va_arg(args, int);
+            if ((short)num < 0)
             {
                 _putchar('-');
-                return print_number_base((unsigned short)(-snum), 10, 0) + 1;
+                return print_number_base((unsigned short)(-(short)num), 10, 0) + 1;
             }
-            return print_number_base((unsigned short)snum, 10, 0);
-        case 'u':
-            uinum = va_arg(args, unsigned int);
-            usnum = (unsigned short)uinum;
-            return print_number_base(usnum, 10, 0);
-        case 'o':
-            uinum = va_arg(args, unsigned int);
-            usnum = (unsigned short)uinum;
-            return print_number_base(usnum, 8, 0);
-        case 'x':
-            uinum = va_arg(args, unsigned int);
-            usnum = (unsigned short)uinum;
-            return print_number_base(usnum, 16, 0);
-        case 'X':
-            uinum = va_arg(args, unsigned int);
-            usnum = (unsigned short)uinum;
-            return print_number_base(usnum, 16, 1);
+            return print_number_base((unsigned short)num, 10, 0);
         default:
             return _putchar('h') + _putchar(**format);
     }

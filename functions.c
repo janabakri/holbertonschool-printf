@@ -1,85 +1,75 @@
+#include <stdarg.h>
 #include "main.h"
 
-/**
- * _putchar - writes a character
- * @c: the character
- * Return: number of bytes written
- */
-int _putchar(char c)
-{
-    return (write(1, &c, 1));
-}
-
-/**
- * print_char - prints a character
- * @args: variadic list
- * Return: number of characters printed
- */
+/* Print a single char */
 int print_char(va_list args)
 {
-    char c = va_arg(args, int);
-    return (_putchar(c));
+    char c = (char)va_arg(args, int);
+    return _putchar(c);
 }
 
-/**
- * print_string - prints a string
- * @args: variadic list
- * Return: number of characters printed
- */
+/* Print a string */
 int print_string(va_list args)
 {
-    char *str = va_arg(args, char *);
-    int i = 0;
-
-    if (str == NULL)
-        str = "(null)";
-
-    while (str[i])
-        _putchar(str[i++]);
-
-    return (i);
-}
-
-/**
- * print_percent - prints %
- * Return: 1
- */
-int print_percent(void)
-{
-    return (_putchar('%'));
-}
-
-/**
- * print_number - recursive function to print numbers
- * @n: long number
- * Return: count of characters
- */
-int print_number(long n)
-{
+    char *s = va_arg(args, char *);
     int count = 0;
 
-    if (n < 0)
+    if (!s)
+        s = "(null)";
+
+    while (*s)
     {
-        count += _putchar('-');
-        n = -n;
+        count += _putchar(*s);
+        s++;
     }
-
-    if (n / 10)
-        count += print_number(n / 10);
-
-    count += _putchar((n % 10) + '0');
-
-    return (count);
+    return count;
 }
 
-/**
- * print_int - prints integers %d %i
- * @args: variadic list
- * Return: number of characters printed
- */
-int print_int(va_list args)
+/* Print percent sign */
+int print_percent(va_list args)
 {
-    long n = va_arg(args, int);
-    return (print_number(n));
+    (void)args;
+    return _putchar('%');
+}
+
+/* Print number */
+int print_number(va_list args)
+{
+    int n = va_arg(args, int);
+    if (n < 0)
+    {
+        _putchar('-');
+        return print_number_base((unsigned int)(-n), 10, 0) + 1;
+    }
+    return print_number_base((unsigned int)n, 10, 0);
+}
+
+/* Print unsigned number with base */
+int print_unsigned(va_list args, int base, int uppercase)
+{
+    unsigned int n = va_arg(args, unsigned int);
+    return print_number_base(n, base, uppercase);
+}
+
+/* Helper to print numbers in any base */
+int print_number_base(unsigned long n, int base, int uppercase)
+{
+    char buffer[50];
+    char *digits = uppercase ? "0123456789ABCDEF" : "0123456789abcdef";
+    int i = 0, count = 0;
+
+    if (n == 0)
+        return _putchar('0');
+
+    while (n > 0)
+    {
+        buffer[i++] = digits[n % base];
+        n /= base;
+    }
+
+    while (--i >= 0)
+        count += _putchar(buffer[i]);
+
+    return count;
 }
 
