@@ -1,30 +1,38 @@
-#include "main.h"
 #include <stdarg.h>
 #include <stdio.h>
+#include "main.h"
 
 /**
- * _printf - Custom printf supporting l and h modifiers
+ * _printf - Custom printf handling length modifiers l and h
  * @format: Format string
- *
  * Return: Number of characters printed
  */
 int _printf(const char *format, ...)
 {
     va_list args;
+    const char *p;
     int count = 0;
-    const char *p = format;
 
     va_start(args, format);
 
+    p = format;
     while (*p)
     {
+        int is_long;
+        int is_short;
+
+        /* Declare all variables at the top of the block */
+        char buffer[1024]; /* example buffer */
+        int i;
+        
+        is_long = 0;
+        is_short = 0;
+
         if (*p == '%')
         {
             p++;
-            int is_long = 0;
-            int is_short = 0;
 
-            /* Check for length modifiers */
+            /* Handle length modifiers */
             if (*p == 'l')
             {
                 is_long = 1;
@@ -36,60 +44,55 @@ int _printf(const char *format, ...)
                 p++;
             }
 
-            switch (*p)
+            /* Handle conversion specifiers */
+            if (*p == 'd' || *p == 'i')
             {
-                case 'd':
-                case 'i':
-                    if (is_long)
-                        count += printf("%ld", va_arg(args, long));
-                    else if (is_short)
-                        count += printf("%hd", (short)va_arg(args, int));
-                    else
-                        count += printf("%d", va_arg(args, int));
-                    break;
-                case 'u':
-                    if (is_long)
-                        count += printf("%lu", va_arg(args, unsigned long));
-                    else if (is_short)
-                        count += printf("%hu", (unsigned short)va_arg(args, unsigned int));
-                    else
-                        count += printf("%u", va_arg(args, unsigned int));
-                    break;
-                case 'o':
-                    if (is_long)
-                        count += printf("%lo", va_arg(args, unsigned long));
-                    else if (is_short)
-                        count += printf("%ho", (unsigned short)va_arg(args, unsigned int));
-                    else
-                        count += printf("%o", va_arg(args, unsigned int));
-                    break;
-                case 'x':
-                    if (is_long)
-                        count += printf("%lx", va_arg(args, unsigned long));
-                    else if (is_short)
-                        count += printf("%hx", (unsigned short)va_arg(args, unsigned int));
-                    else
-                        count += printf("%x", va_arg(args, unsigned int));
-                    break;
-                case 'X':
-                    if (is_long)
-                        count += printf("%lX", va_arg(args, unsigned long));
-                    else if (is_short)
-                        count += printf("%hX", (unsigned short)va_arg(args, unsigned int));
-                    else
-                        count += printf("%X", va_arg(args, unsigned int));
-                    break;
-                default:
-                    putchar(*p);
-                    count++;
-                    break;
+                long lnum;
+                int inum;
+
+                if (is_long)
+                {
+                    lnum = va_arg(args, long);
+                    count += printf("%ld", lnum);
+                }
+                else if (is_short)
+                {
+                    inum = (short)va_arg(args, int); /* promoted to int */
+                    count += printf("%d", inum);
+                }
+                else
+                {
+                    inum = va_arg(args, int);
+                    count += printf("%d", inum);
+                }
             }
+            else if (*p == 'u' || *p == 'o' || *p == 'x' || *p == 'X')
+            {
+                unsigned long lnumu;
+                unsigned int inumu;
+
+                if (is_long)
+                    lnumu = va_arg(args, unsigned long);
+                else
+                    inumu = va_arg(args, unsigned int);
+
+                if (*p == 'u')
+                    count += printf(is_long ? "%lu" : "%u", is_long ? lnumu : inumu);
+                else if (*p == 'o')
+                    count += printf(is_long ? "%lo" : "%o", is_long ? lnumu : inumu);
+                else if (*p == 'x')
+                    count += printf(is_long ? "%lx" : "%x", is_long ? lnumu : inumu);
+                else if (*p == 'X')
+                    count += printf(is_long ? "%lX" : "%X", is_long ? lnumu : inumu);
+            }
+            /* Add other specifiers as needed */
         }
         else
         {
             putchar(*p);
             count++;
         }
+
         p++;
     }
 
