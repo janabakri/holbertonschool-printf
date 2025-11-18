@@ -1,10 +1,92 @@
 #include "main.h"
 
-/**
- * print_binary - prints an unsigned int in binary
- * @n: number
- * Return: number of characters printed
- */
+/* Print unsigned int */
+int print_unsigned(unsigned int n)
+{
+    char buffer[20];
+    int i = 0, count = 0;
+
+    if (n == 0)
+        return write(1, "0", 1);
+
+    while (n)
+    {
+        buffer[i++] = (n % 10) + '0';
+        n /= 10;
+    }
+
+    while (i--)
+        count += write(1, &buffer[i], 1);
+
+    return count;
+}
+
+/* Print octal */
+int print_octal(unsigned int n)
+{
+    char buffer[20];
+    int i = 0, count = 0;
+
+    if (n == 0)
+        return write(1, "0", 1);
+
+    while (n)
+    {
+        buffer[i++] = (n % 8) + '0';
+        n /= 8;
+    }
+
+    while (i--)
+        count += write(1, &buffer[i], 1);
+
+    return count;
+}
+
+/* Print lowercase hex */
+int print_hex(unsigned int n)
+{
+    char buffer[20];
+    char *hex = "0123456789abcdef";
+    int i = 0, count = 0;
+
+    if (n == 0)
+        return write(1, "0", 1);
+
+    while (n)
+    {
+        buffer[i++] = hex[n % 16];
+        n /= 16;
+    }
+
+    while (i--)
+        count += write(1, &buffer[i], 1);
+
+    return count;
+}
+
+/* Print uppercase hex */
+int print_HEX(unsigned int n)
+{
+    char buffer[20];
+    char *hex = "0123456789ABCDEF";
+    int i = 0, count = 0;
+
+    if (n == 0)
+        return write(1, "0", 1);
+
+    while (n)
+    {
+        buffer[i++] = hex[n % 16];
+        n /= 16;
+    }
+
+    while (i--)
+        count += write(1, &buffer[i], 1);
+
+    return count;
+}
+
+/* Print binary */
 int print_binary(unsigned int n)
 {
     char buffer[32];
@@ -13,7 +95,7 @@ int print_binary(unsigned int n)
     if (n == 0)
         return write(1, "0", 1);
 
-    while (n > 0)
+    while (n)
     {
         buffer[i++] = (n % 2) + '0';
         n /= 2;
@@ -25,11 +107,7 @@ int print_binary(unsigned int n)
     return count;
 }
 
-/**
- * _printf - Custom printf including %b
- * @format: Format string
- * Return: Number of characters printed or -1 on error
- */
+/* Main _printf */
 int _printf(const char *format, ...)
 {
     va_list args;
@@ -37,8 +115,8 @@ int _printf(const char *format, ...)
     char c, *s;
     unsigned int n;
 
-    if (format == NULL)
-        return (-1);
+    if (!format)
+        return -1;
 
     va_start(args, format);
 
@@ -49,37 +127,55 @@ int _printf(const char *format, ...)
             i++;
 
             if (!format[i])
-            {
-                va_end(args);
-                return (-1);
-            }
+                return -1;
 
-            if (format[i] == 'c')
+            switch (format[i])
             {
-                c = (char)va_arg(args, int);
-                count += write(1, &c, 1);
-            }
-            else if (format[i] == 's')
-            {
-                s = va_arg(args, char *);
-                if (!s)
-                    s = "(null)";
-                while (*s)
-                    count += write(1, s++, 1);
-            }
-            else if (format[i] == '%')
-            {
-                count += write(1, "%", 1);
-            }
-            else if (format[i] == 'b')
-            {
-                n = va_arg(args, unsigned int);
-                count += print_binary(n);
-            }
-            else
-            {
-                count += write(1, "%", 1);
-                count += write(1, &format[i], 1);
+                case 'c':
+                    c = va_arg(args, int);
+                    count += write(1, &c, 1);
+                    break;
+
+                case 's':
+                    s = va_arg(args, char *);
+                    if (!s)
+                        s = "(null)";
+                    while (*s)
+                        count += write(1, s++, 1);
+                    break;
+
+                case '%':
+                    count += write(1, "%", 1);
+                    break;
+
+                case 'b':
+                    n = va_arg(args, unsigned int);
+                    count += print_binary(n);
+                    break;
+
+                case 'u':
+                    n = va_arg(args, unsigned int);
+                    count += print_unsigned(n);
+                    break;
+
+                case 'o':
+                    n = va_arg(args, unsigned int);
+                    count += print_octal(n);
+                    break;
+
+                case 'x':
+                    n = va_arg(args, unsigned int);
+                    count += print_hex(n);
+                    break;
+
+                case 'X':
+                    n = va_arg(args, unsigned int);
+                    count += print_HEX(n);
+                    break;
+
+                default:
+                    count += write(1, "%", 1);
+                    count += write(1, &format[i], 1);
             }
         }
         else
