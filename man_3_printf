@@ -1,31 +1,102 @@
-.TH _PRINTF 3 "January 2025" "Holberton School"
+.TH _PRINTF 3 "November 2025" "Holberton School" "Library Functions Manual"
 .SH NAME
-_printf \- custom implementation of printf
+_printf \- formatted output conversion
 
 .SH SYNOPSIS
 .B #include "main.h"
 .br
-int _printf(const char *format, ...);
+.B int _printf(const char *format, ...);
 
 .SH DESCRIPTION
-The _printf function produces output according to a format.
-It handles the following conversion specifiers:
+The
+.B _printf()
+function produces output according to a
+.I format
+string and a variable number of arguments.
+Output is written to the standard output stream (stdout) using the
+.B write(2)
+system call.
+
+The
+.I format
+string is composed of zero or more characters and conversion
+specifiers. Ordinary characters are printed as-is.
+
+A conversion specifier starts with the character '%' and is followed by
+a character indicating how the argument should be formatted.
+
+For this project,
+.B _printf()
+implements a subset of the functionality of the C standard library
+printf(3).
+
+.SS Supported conversion specifiers
 .TP
-%c
-Print a single character.
+.B %c
+Prints a single character.
+
 .TP
-%s
-Print a string.
+.B %s
+Prints a null-terminated string. If the argument is NULL, the string
+"(null)" is printed.
+
 .TP
-%%
-Print a percent sign.
+.B %%
+Prints a literal percent sign.
+
 .TP
-%d, %i
-Print a signed integer.
+.B %d, %i
+Prints a signed decimal integer.
+
+Unsupported conversion specifiers are printed as-is (the '%' and the
+following character).
 
 .SH RETURN VALUE
-Returns the number of characters printed, excluding the null byte.
+On success,
+.B _printf()
+returns the number of characters printed (excluding the terminating
+null byte).
 
-.SH AUTHOR
-Bader Abdulaziz Almutairi
+If an error occurs (such as a NULL format string), the function returns
+-1.
+
+.SH ERRORS
+.TP
+.B EINVAL
+Returned when the format string is NULL.
+
+.SH EXAMPLES
+Print simple text:
+.PP
+.nf
+    _printf("Hello, Holberton!\\n");
+.fi
+
+Print formatted data:
+.PP
+.nf
+    int n = 42;
+    _printf("Value: %d\\n", n);
+.fi
+
+Print characters and strings:
+.PP
+.nf
+    _printf("Letter: %c, Word: %s\\n", 'A', "School");
+.fi
+
+Print a percent sign:
+.PP
+.nf
+    _printf("100%% complete\\n");
+.fi
+
+.SH SEE ALSO
+printf(3)
+
+.SH AUTHORS
 Jana Rasheed Bakri
+.br
+Badr Abdulaziz Almutairi
+
+
