@@ -1,169 +1,106 @@
+#include "main.h"
 #include <stdarg.h>
 #include <unistd.h>
 
-/* Buffer size */
-#define BUF_SIZE 1024
+#define BUFFER_SIZE 1024
+
+/* Function prototypes */
+int _printf(const char *format, ...);
+int flush_buffer(char *buffer, int *buff_index);
+int buffer_char(char c, char *buffer, int *buff_index);
+int buffer_string(char *s, char *buffer, int *buff_index);
+int buffer_pointer(void *ptr, char *buffer, int *buff_index);
 
 /* Flush buffer to stdout */
-int flush_buffer(char *buffer, int *index)
+int flush_buffer(char *buffer, int *buff_index)
 {
-    if (*index > 0)
-    {
-        write(1, buffer, *index);
-        *index = 0;
-    }
-    return 0;
+    int written = write(1, buffer, *buff_index);
+    *buff_index = 0;
+    return written;
 }
 
-/* Add a single character to buffer */
-int buffer_char(char c, char *buffer, int *index)
+/* Add char to buffer */
+int buffer_char(char c, char *buffer, int *buff_index)
 {
-    buffer[(*index)++] = c;
-    if (*index == BUF_SIZE)
-        flush_buffer(buffer, index);
-    return 1;
+    int count = 0;
+    buffer[*buff_index] = c;
+    (*buff_index)++;
+    if (*buff_index == BUFFER_SIZE)
+        count += flush_buffer(buffer, buff_index);
+    return count;
 }
 
-/* Add a string to buffer */
-int buffer_string(char *s, char *buffer, int *index)
+/* Add string to buffer */
+int buffer_string(char *s, char *buffer, int *buff_index)
 {
-    int len = 0;
+    int count = 0;
+    if (!s)
+        s = "(null)";
     while (*s)
-    {
-        buffer_char(*s++, buffer, index);
-        len++;
-    }
-    return len;
+        count += buffer_char(*s++, buffer, buff_index);
+    return count;
 }
 
-/* Convert number to given base and add to buffer */
-int buffer_number(unsigned int n, int base, char *digits, char *buffer, int *index)
+/* Add pointer address to buffer */
+int buffer_pointer(void *ptr, char *buffer, int *buff_index)
 {
-    char tmp[32];
-    int i = 0, len = 0;
+    int count = 0;
+    unsigned long addr;
+    char hex[16];
+    int i;
 
-    if (n == 0)
-        return buffer_char('0', buffer, index);
+    if (!ptr)
+        return buffer_string("(nil)", buffer, buff_index);
 
-    while (n > 0)
+    addr = (unsigned long)ptr;
+    buffer_char('0', buffer, buff_index);
+    buffer_char('x', buffer, buff_index);
+
+    i = 0;
+    while (addr > 0)
     {
-        tmp[i++] = digits[n % base];
-        n /= base;
+        hex[i++] = "0123456789abcdef"[addr % 16];
+        addr /= 16;
     }
+    if (i == 0)
+        hex[i++] = '0';
+    while (--i >= 0)
+        count += buffer_char(hex[i], buffer, buff_index);
 
-    while (i--)
-        len += buffer_char(tmp[i], buffer, index);
-
-    return len;
+    return count;
 }
 
-/* Handle signed integers */
-int buffer_signed(int n, char *buffer, int *index)
-{
-    unsigned int num;
-    int len = 0;
-
-    if (n < 0)
-    {
-        len += buffer_char('-', buffer, index);
-        num = -n;
-    }
-    else
-        num = n;
-
-    len += buffer_number(num, 10, "0123456789", buffer, index);
-    return len;
-}
-
-/* Handle custom %S specifier */
-int buffer_S(char *s, char *buffer, int *index)
-{
-    int len = 0;
-    unsigned char c;
-
-    while ((c = (unsigned char)*s++))
-    {
-        if ((c > 0 && c < 32) || c >= 127)
-        {
-            len += buffer_char('\\', buffer, index);
-            len += buffer_char('x', buffer, index);
-            /* high nibble */
-            len += buffer_char("0123456789ABCDEF"[c / 16], buffer, index);
-            /* low nibble */
-            len += buffer_char("0123456789ABCDEF"[c % 16], buffer, index);
-        }
-        else
-        {
-            len += buffer_char(c, buffer, index);
-        }
-    }
-    return len;
-}
-
-/* Main _printf function */
+/* _printf implementation */
 int _printf(const char *format, ...)
 {
     va_list args;
-    char buffer[BUF_SIZE];
-    int buff_index = 0, len = 0;
+    int count = 0, i = 0, buff_index = 0;
+    char buffer[BUFFER_SIZE];
 
     va_start(args, format);
 
-    while (*format)
+    while (format[i])
     {
-        if (*format != '%')
+        if (format[i] == '%' && format[i + 1])
         {
-            buffer_char(*format, buffer, &buff_index);
-            len++;
-            format++;
-            continue;
+            i++;
+            if (format[i] == 's')
+                count += buffer_string(va_arg(args, char *), buffer, &buff_index);
+            else if (format[i] == 'c')
+                count += buffer_char(va_arg(args, int), buffer, &buff_index);
+            else if (format[i] == 'p')
+                count += buffer_pointer(va_arg(args, void *), buffer, &buff_index);
+            /* Add other specifiers here (d, i, b, S, etc.) */
+            else
+                count += buffer_char(format[i], buffer, &buff_index);
         }
-
-        format++; /* skip % */
-
-        switch (*format)
-        {
-            case 'c':
-                len += buffer_char(va_arg(args, int), buffer, &buff_index);
-                break;
-            case 's':
-                len += buffer_string(va_arg(args, char *), buffer, &buff_index);
-                break;
-            case 'S':
-                len += buffer_S(va_arg(args, char *), buffer, &buff_index);
-                break;
-            case 'd':
-            case 'i':
-                len += buffer_signed(va_arg(args, int), buffer, &buff_index);
-                break;
-            case 'u':
-                len += buffer_number(va_arg(args, unsigned int), 10, "0123456789", buffer, &buff_index);
-                break;
-            case 'o':
-                len += buffer_number(va_arg(args, unsigned int), 8, "01234567", buffer, &buff_index);
-                break;
-            case 'x':
-                len += buffer_number(va_arg(args, unsigned int), 16, "0123456789abcdef", buffer, &buff_index);
-                break;
-            case 'X':
-                len += buffer_number(va_arg(args, unsigned int), 16, "0123456789ABCDEF", buffer, &buff_index);
-                break;
-            case 'b':
-                len += buffer_number(va_arg(args, unsigned int), 2, "01", buffer, &buff_index);
-                break;
-            case '%':
-                len += buffer_char('%', buffer, &buff_index);
-                break;
-            default:
-                len += buffer_char('%', buffer, &buff_index);
-                len += buffer_char(*format, buffer, &buff_index);
-                break;
-        }
-        format++;
+        else
+            count += buffer_char(format[i], buffer, &buff_index);
+        i++;
     }
 
-    flush_buffer(buffer, &buff_index);
+    count += flush_buffer(buffer, &buff_index);
     va_end(args);
-    return len;
+    return count;
 }
 
