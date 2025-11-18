@@ -1,16 +1,41 @@
 #include "main.h"
 
 /**
- * _printf - Custom printf function (mandatory tasks only)
+ * print_binary - prints an unsigned int in binary
+ * @n: number
+ * Return: number of characters printed
+ */
+int print_binary(unsigned int n)
+{
+    char buffer[32];
+    int i = 0, count = 0;
+
+    if (n == 0)
+        return write(1, "0", 1);
+
+    while (n > 0)
+    {
+        buffer[i++] = (n % 2) + '0';
+        n /= 2;
+    }
+
+    while (i--)
+        count += write(1, &buffer[i], 1);
+
+    return count;
+}
+
+/**
+ * _printf - Custom printf including %b
  * @format: Format string
- * Return: Number of characters printed, or -1 on error
+ * Return: Number of characters printed or -1 on error
  */
 int _printf(const char *format, ...)
 {
     va_list args;
     int i = 0, count = 0;
-    char c;
-    char *s;
+    char c, *s;
+    unsigned int n;
 
     if (format == NULL)
         return (-1);
@@ -23,8 +48,7 @@ int _printf(const char *format, ...)
         {
             i++;
 
-            /* ----- IMPORTANT FIX ----- */
-            if (!format[i])   /* format ends with % */
+            if (!format[i])
             {
                 va_end(args);
                 return (-1);
@@ -41,18 +65,19 @@ int _printf(const char *format, ...)
                 if (!s)
                     s = "(null)";
                 while (*s)
-                {
-                    count += write(1, s, 1);
-                    s++;
-                }
+                    count += write(1, s++, 1);
             }
             else if (format[i] == '%')
             {
                 count += write(1, "%", 1);
             }
+            else if (format[i] == 'b')
+            {
+                n = va_arg(args, unsigned int);
+                count += print_binary(n);
+            }
             else
             {
-                /* For unsupported specifiers: print literally */
                 count += write(1, "%", 1);
                 count += write(1, &format[i], 1);
             }
@@ -61,11 +86,10 @@ int _printf(const char *format, ...)
         {
             count += write(1, &format[i], 1);
         }
-
         i++;
     }
 
     va_end(args);
-    return (count);
+    return count;
 }
 
