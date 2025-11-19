@@ -38,6 +38,14 @@ int print_number_base_str(const char *str, fmt_options *opts, int negative, cons
         /* when precision is specified, '0' flag is ignored for padding the field */
     }
 
+    /* Special case: when precision is specified as 0 and the value is 0, nothing is printed for integers */
+    if (opts->precision_specified && opts->precision == 0 && len == 1 && str[0] == '0')
+    {
+        /* treat as empty number (len 0) */
+        len = 0;
+        pad = 0; /* no precision zeros needed */
+    }
+
     /* compute content length and field padding */
     content_len = len + pad + prefix_len + (sign_char ? 1 : 0);
     if (opts->width > content_len)
@@ -240,6 +248,12 @@ int print_number(va_list args, fmt_options *opts)
     /* convert absolute value to string */
     ultoa_base((unsigned long)val, 10, 0, buf, sizeof(buf));
 
+    /* If precision is specified as 0 and value is 0, print no digits */
+    if (opts->precision_specified && opts->precision == 0 && buf[0] == '0')
+    {
+        buf[0] = '\0';
+    }
+
     /* prefix is handled by print_number_base_str (sign handled separately) */
     return print_number_base_str(buf, opts, negative, NULL);
 }
@@ -278,5 +292,10 @@ int print_unsigned(va_list args, fmt_options *opts, int base, int uppercase)
     }
 
     ultoa_base(val, base, uppercase, buf, sizeof(buf));
+    /* If precision is specified as 0 and value is 0, print no digits */
+    if (opts->precision_specified && opts->precision == 0 && buf[0] == '0')
+    {
+        buf[0] = '\0';
+    }
     return print_number_base_str(buf, opts, 0, prefix);
 }
