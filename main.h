@@ -27,6 +27,9 @@ int print_percent(va_list args, fmt_options *opts);
 int print_number(va_list args, fmt_options *opts);
 int print_unsigned(va_list args, fmt_options *opts, int base, int uppercase);
 
+/* custom specifiers */
+int print_reverse(va_list args, fmt_options *opts);
+
 /* Number base printer (internal helper) */
 int print_number_base_str(const char *str, fmt_options *opts, int negative, const char *prefix);
 
