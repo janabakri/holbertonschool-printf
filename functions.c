@@ -187,8 +187,30 @@ int print_string(va_list args, fmt_options *opts)
 int print_percent(va_list args, fmt_options *opts)
 {
     (void)args;
-    (void)opts;
-    return _putchar('%');
+    int count = 0;
+    int width = 0;
+    int i;
+
+    if (opts)
+        width = opts->width;
+
+    if (width <= 1)
+        return _putchar('%');
+
+    if (!opts || !opts->dash)
+    {
+        for (i = 0; i < width - 1; i++)
+            count += _putchar(' ');
+        count += _putchar('%');
+    }
+    else
+    {
+        count += _putchar('%');
+        for (i = 0; i < width - 1; i++)
+            count += _putchar(' ');
+    }
+
+    return count;
 }
 
 /* helper: integer to string for unsigned long using buffer (returns pointer) */
