@@ -37,8 +37,8 @@ int _printf(const char *format, ...)
                     opts.plus = 1;
                 else if (*format == ' ')
                     opts.space = 1;
-                else if (*format == '#'
-                opts.hash = 1;
+                else if (*format == '#')
+                    opts.hash = 1;
                 else if (*format == '0')
                     opts.zero = 1;
                 else if (*format == '-')
