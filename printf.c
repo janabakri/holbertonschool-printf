@@ -42,7 +42,11 @@ int _printf(const char *format, ...)
                 else if (*format == '0')
                     opts.zero = 1;
                 else if (*format == '-')
+                {
                     opts.dash = 1;
+                    /* '-' overrides '0' */
+                    opts.zero = 0;
+                }
                 format++;
             }
 
