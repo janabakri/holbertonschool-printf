@@ -137,6 +137,10 @@ int _printf(const char *format, ...)
                 count += print_reverse(args, &opts);
                 break;
 
+            case 'R': /* custom: ROT13 string */
+                count += print_rot13(args, &opts);
+                break;
+
             case 'd':
             case 'i':
                 count += print_number(args, &opts);
