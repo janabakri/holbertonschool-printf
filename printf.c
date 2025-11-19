@@ -37,8 +37,8 @@ int _printf(const char *format, ...)
                     opts.plus = 1;
                 else if (*format == ' ')
                     opts.space = 1;
-                else if (*format == '#')
-                    opts.hash = 1;
+                else if (*format == '#'
+                opts.hash = 1;
                 else if (*format == '0')
                     opts.zero = 1;
                 else if (*format == '-')
@@ -160,6 +160,10 @@ int _printf(const char *format, ...)
 
             case 'X':
                 count += print_unsigned(args, &opts, 16, 1);
+                break;
+
+            case 'b': /* custom: binary */
+                count += print_unsigned(args, &opts, 2, 0);
                 break;
 
             default:
