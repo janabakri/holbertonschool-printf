@@ -1,10 +1,21 @@
 #include "main.h"
 #include <stdarg.h>
+#include <ctype.h>
+
+static void init_opts(fmt_options *o)
+{
+    o->plus = o->space = o->hash = o->zero = o->dash = 0;
+    o->width = 0;
+    o->precision = 0;
+    o->precision_specified = 0;
+    o->length = 0;
+}
 
 int _printf(const char *format, ...)
 {
     va_list args;
     int count = 0;
+    fmt_options opts;
 
     if (!format)
         return (-1);
@@ -16,30 +27,95 @@ int _printf(const char *format, ...)
         if (*format == '%')
         {
             format++;
+            init_opts(&opts);
+
+            /* parse flags */
+            while (*format == '+' || *format == ' ' || *format == '#' ||
+                   *format == '0' || *format == '-')
+            {
+                if (*format == '+')
+                    opts.plus = 1;
+                else if (*format == ' ')
+                    opts.space = 1;
+                else if (*format == '#')
+                    opts.hash = 1;
+                else if (*format == '0')
+                    opts.zero = 1;
+                else if (*format == '-')
+                    opts.dash = 1;
+                format++;
+            }
+
+            /* parse width (number only for now) */
+            if (isdigit((unsigned char)*format))
+            {
+                opts.width = 0;
+                while (isdigit((unsigned char)*format))
+                {
+                    opts.width = opts.width * 10 + (*format - '0');
+                    format++;
+                }
+            }
+
+            /* parse precision */
+            if (*format == '.')
+            {
+                format++;
+                opts.precision_specified = 1;
+                opts.precision = 0;
+                while (isdigit((unsigned char)*format))
+                {
+                    opts.precision = opts.precision * 10 + (*format - '0');
+                    format++;
+                }
+            }
+
+            /* parse length */
+            if (*format == 'h' || *format == 'l')
+            {
+                opts.length = *format;
+                format++;
+            }
 
             if (*format == '\0')
             {
                 va_end(args);
-                return (-1); /* trailing '%' is an error per spec */
+                return (-1);
             }
 
             switch (*format)
             {
             case 'c':
-                count += print_char(args);
+                count += print_char(args, &opts);
                 break;
 
             case 's':
-                count += print_string(args);
+                count += print_string(args, &opts);
                 break;
 
             case '%':
-                count += print_percent(args);
+                count += print_percent(args, &opts);
                 break;
 
             case 'd':
             case 'i':
-                count += print_number(args);
+                count += print_number(args, &opts);
+                break;
+
+            case 'u':
+                count += print_unsigned(args, &opts, 10, 0);
+                break;
+
+            case 'o':
+                count += print_unsigned(args, &opts, 8, 0);
+                break;
+
+            case 'x':
+                count += print_unsigned(args, &opts, 16, 0);
+                break;
+
+            case 'X':
+                count += print_unsigned(args, &opts, 16, 1);
                 break;
 
             default:

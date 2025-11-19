@@ -4,22 +4,30 @@
 #include <stdarg.h>
 #include <limits.h>
 
+typedef struct fmt_options
+{
+    int plus;
+    int space;
+    int hash;
+    int zero;
+    int dash;
+    int width;
+    int precision;
+    int precision_specified;
+    char length; /* 'l' or 'h' or 0 */
+} fmt_options;
+
 int _printf(const char *format, ...);
 int _putchar(char c);
 
-int handle_conversion(const char **format, va_list args);
-int handle_long(const char **format, va_list args);
-int handle_short(const char **format, va_list args);
+/* Print functions (now accept options) */
+int print_char(va_list args, fmt_options *opts);
+int print_string(va_list args, fmt_options *opts);
+int print_percent(va_list args, fmt_options *opts);
+int print_number(va_list args, fmt_options *opts);
+int print_unsigned(va_list args, fmt_options *opts, int base, int uppercase);
 
-/* Print functions */
-int print_char(va_list args);
-int print_string(va_list args);
-int print_percent(va_list args);
-int print_number(va_list args);
-int print_unsigned(va_list args, int base, int uppercase);
-
-/* Number base printer */
-int print_number_base(unsigned long n, int base, int uppercase);
+/* Number base printer (internal helper) */
+int print_number_base_str(const char *str, fmt_options *opts, int negative, const char *prefix);
 
 #endif
-
