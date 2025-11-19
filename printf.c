@@ -58,7 +58,6 @@ int handle_conversion(const char **format, va_list args)
 int handle_long(const char **format, va_list args)
 {
     long num;
-    unsigned long unum;
 
     (*format)++; /* Skip 'l' */
 
@@ -81,7 +80,6 @@ int handle_long(const char **format, va_list args)
 int handle_short(const char **format, va_list args)
 {
     int num;
-    unsigned int unum;
 
     (*format)++; /* Skip 'h' */
 
@@ -100,4 +98,3 @@ int handle_short(const char **format, va_list args)
             return _putchar('h') + _putchar(**format);
     }
 }
-
