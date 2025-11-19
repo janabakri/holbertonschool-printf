@@ -441,3 +441,56 @@ int print_S(va_list args, fmt_options *opts)
 
     return count;
 }
+
+/* Print ROT13'ed string (custom %R) */
+int print_rot13(va_list args, fmt_options *opts)
+{
+    char *s;
+    int count = 0;
+    int len;
+    int i;
+    int to_print;
+    int width = 0;
+    char c, out;
+
+    s = va_arg(args, char *);
+    if (!s)
+        s = "(null)";
+
+    len = (int)strlen(s);
+
+    if (opts && opts->precision_specified && opts->precision < len)
+        to_print = opts->precision;
+    else
+        to_print = len;
+
+    if (opts)
+        width = opts->width;
+
+    /* left padding */
+    if (!opts || !opts->dash)
+    {
+        for (i = 0; i < width - to_print; i++)
+            count += _putchar(' ');
+    }
+
+    for (i = 0; i < to_print; i++)
+    {
+        c = s[i];
+        out = c;
+        if (c >= 'a' && c <= 'z')
+            out = (char)((((c - 'a') + 13) % 26) + 'a');
+        else if (c >= 'A' && c <= 'Z')
+            out = (char)((((c - 'A') + 13) % 26) + 'A');
+        count += _putchar(out);
+    }
+
+    /* right padding */
+    if (opts && opts->dash)
+    {
+        for (i = 0; i < width - to_print; i++)
+            count += _putchar(' ');
+    }
+
+    return count;
+}
