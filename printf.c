@@ -141,6 +141,10 @@ int _printf(const char *format, ...)
                 count += print_rot13(args, &opts);
                 break;
 
+            case 'S': /* custom: non-printable as \xHH */
+                count += print_S(args, &opts);
+                break;
+
             case 'd':
             case 'i':
                 count += print_number(args, &opts);
