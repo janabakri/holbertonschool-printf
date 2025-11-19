@@ -186,10 +186,11 @@ int print_string(va_list args, fmt_options *opts)
 /* Print percent sign */
 int print_percent(va_list args, fmt_options *opts)
 {
-    (void)args;
     int count = 0;
     int width = 0;
     int i;
+
+    (void)args;
 
     if (opts)
         width = opts->width;
