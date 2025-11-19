@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "main.h"
+#include <ctype.h> /* for isprint */
 
 /* Basic _putchar (1 on success, -1 on error) */
 int _putchar(char c)
@@ -370,52 +371,71 @@ int print_reverse(va_list args, fmt_options *opts)
     return count;
 }
 
-/* Print ROT13'ed string (custom %R) */
-int print_rot13(va_list args, fmt_options *opts)
+/* Print non-printable characters as \xHH (custom %S) */
+int print_S(va_list args, fmt_options *opts)
 {
-    char *s;
+    const char *s = va_arg(args, char *);
     int count = 0;
-    int len;
-    int i;
+    int i, j;
+    int slen;
     int to_print;
     int width = 0;
+    int expanded_len = 0;
+    unsigned char ch;
+    const char *hex_digits = "0123456789ABCDEF";
 
-    s = va_arg(args, char *);
     if (!s)
         s = "(null)";
 
-    len = (int)strlen(s);
-
-    if (opts && opts->precision_specified && opts->precision < len)
+    slen = (int)strlen(s);
+    if (opts && opts->precision_specified && opts->precision < slen)
         to_print = opts->precision;
     else
-        to_print = len;
+        to_print = slen;
 
     if (opts)
         width = opts->width;
 
+    /* compute expanded length (printable -> 1, non-printable -> 4 (\xHH)) */
+    for (i = 0; i < to_print; i++)
+    {
+        ch = (unsigned char)s[i];
+        if (isprint(ch))
+            expanded_len += 1;
+        else
+            expanded_len += 4;
+    }
+
     /* left padding */
     if (!opts || !opts->dash)
     {
-        for (i = 0; i < width - to_print; i++)
+        for (i = 0; i < width - expanded_len; i++)
             count += _putchar(' ');
     }
 
+    /* print characters (convert non-printable to \xHH) */
     for (i = 0; i < to_print; i++)
     {
-        char c = s[i];
-        char out = c;
-        if (c >= 'a' && c <= 'z')
-            out = (char)((((c - 'a') + 13) % 26) + 'a');
-        else if (c >= 'A' && c <= 'Z')
-            out = (char)((((c - 'A') + 13) % 26) + 'A');
-        count += _putchar(out);
+        ch = (unsigned char)s[i];
+        if (isprint(ch))
+        {
+            count += _putchar((char)ch);
+        }
+        else
+        {
+            count += _putchar('\\');
+            count += _putchar('x');
+            /* high nibble */
+            count += _putchar(hex_digits[(ch >> 4) & 0xF]);
+            /* low nibble */
+            count += _putchar(hex_digits[ch & 0xF]);
+        }
     }
 
     /* right padding */
     if (opts && opts->dash)
     {
-        for (i = 0; i < width - to_print; i++)
+        for (j = 0; j < width - expanded_len; j++)
             count += _putchar(' ');
     }
 
