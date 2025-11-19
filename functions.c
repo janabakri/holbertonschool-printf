@@ -1,4 +1,5 @@
 #include <stdarg.h>
+#include <stdio.h>
 #include "main.h"
 
 /* Print a single char */
@@ -6,6 +7,12 @@ int print_char(va_list args)
 {
     char c = (char)va_arg(args, int);
     return _putchar(c);
+}
+
+int _putchar(char c)
+{
+    int r = putchar((unsigned char)c);
+    return (r == EOF) ? -1 : 1;
 }
 
 /* Print a string */
@@ -36,10 +43,15 @@ int print_percent(va_list args)
 int print_number(va_list args)
 {
     int n = va_arg(args, int);
+    unsigned int un;
+    int count = 0;
+
     if (n < 0)
     {
         _putchar('-');
-        return print_number_base((unsigned int)(-n), 10, 0) + 1;
+        un = (unsigned int)(-(long)n);
+        count = print_number_base(un, 10, 0) + 1;
+        return count;
     }
     return print_number_base((unsigned int)n, 10, 0);
 }
@@ -72,4 +84,3 @@ int print_number_base(unsigned long n, int base, int uppercase)
 
     return count;
 }
-

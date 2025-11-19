@@ -18,31 +18,34 @@ int _printf(const char *format, ...)
             format++;
 
             if (*format == '\0')
-                break;
+            {
+                va_end(args);
+                return (-1); /* trailing '%' is an error per spec */
+            }
 
             switch (*format)
             {
-                case 'c':
-                    count += print_char(args);
-                    break;
+            case 'c':
+                count += print_char(args);
+                break;
 
-                case 's':
-                    count += print_string(args);
-                    break;
+            case 's':
+                count += print_string(args);
+                break;
 
-                case '%':
-                    count += print_percent(args);
-                    break;
+            case '%':
+                count += print_percent(args);
+                break;
 
-                case 'd':
-                case 'i':
-                    count += print_number(args);
-                    break;
+            case 'd':
+            case 'i':
+                count += print_number(args);
+                break;
 
-                default:
-                    count += _putchar('%');
-                    count += _putchar(*format);
-                    break;
+            default:
+                count += _putchar('%');
+                count += _putchar(*format);
+                break;
             }
         }
         else
