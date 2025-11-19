@@ -1,169 +1,282 @@
-#include "main.h"
 #include <stdarg.h>
-#include <ctype.h>
+#include <stdio.h>
+#include <string.h>
+#include "main.h"
 
-static void init_opts(fmt_options *o)
+/* Basic _putchar (1 on success, -1 on error) */
+int _putchar(char c)
 {
-    o->plus = o->space = o->hash = o->zero = o->dash = 0;
-    o->width = 0;
-    o->precision = 0;
-    o->precision_specified = 0;
-    o->length = 0;
+    int r = putchar((unsigned char)c);
+    return (r == EOF) ? -1 : 1;
 }
 
-int _printf(const char *format, ...)
+/* helper: write string with width/precision/prefix/sign handling */
+int print_number_base_str(const char *str, fmt_options *opts, int negative, const char *prefix)
 {
-    va_list args;
-    int count = 0;
-    fmt_options opts;
+    int len = (int)strlen(str);
+    int prefix_len = prefix ? (int)strlen(prefix) : 0;
+    int total = 0;
+    int pad = 0;
+    int sign_char = 0; /* 0 none, '+' or ' ' or '-' */
+    int i;
+    int left_pad = 0;
+    int right_pad = 0;
+    int content_len = 0;
+    char pad_ch = ' ';
 
-    if (!format)
-        return (-1);
+    if (negative)
+        sign_char = '-';
+    else if (opts->plus)
+        sign_char = '+';
+    else if (opts->space)
+        sign_char = ' ';
 
-    va_start(args, format);
-
-    while (*format)
+    if (opts->precision_specified)
     {
-        if (*format == '%')
+        if (opts->precision > len)
+            pad = opts->precision - len;
+        /* when precision is specified, '0' flag is ignored for padding the field */
+    }
+
+    /* compute content length and field padding */
+    content_len = len + pad + prefix_len + (sign_char ? 1 : 0);
+    if (opts->width > content_len)
+        left_pad = opts->width - content_len;
+    else
+        left_pad = 0;
+
+    /* left padding (if not dash) */
+    pad_ch = (opts->zero && !opts->precision_specified) ? '0' : ' ';
+    if (!opts->dash)
+    {
+        if (pad_ch == '0')
         {
-            format++;
-            init_opts(&opts);
-
-            /* parse flags */
-            while (*format == '+' || *format == ' ' || *format == '#' ||
-                   *format == '0' || *format == '-')
+            if (sign_char)
+                total += _putchar((char)sign_char);
+            if (prefix_len)
             {
-                if (*format == '+')
-                    opts.plus = 1;
-                else if (*format == ' ')
-                    opts.space = 1;
-                else if (*format == '#')
-                    opts.hash = 1;
-                else if (*format == '0')
-                    opts.zero = 1;
-                else if (*format == '-')
-                    opts.dash = 1;
-                format++;
+                for (i = 0; i < prefix_len; i++)
+                    total += _putchar(prefix[i]);
             }
-
-            /* parse width (number or *) */
-            if (*format == '*')
-            {
-                int w = va_arg(args, int);
-                if (w < 0)
-                {
-                    opts.dash = 1;
-                    opts.width = -w;
-                }
-                else
-                {
-                    opts.width = w;
-                }
-                format++;
-            }
-            else if (isdigit((unsigned char)*format))
-            {
-                opts.width = 0;
-                while (isdigit((unsigned char)*format))
-                {
-                    opts.width = opts.width * 10 + (*format - '0');
-                    format++;
-                }
-            }
-
-            /* parse precision ('.' followed by number or '*') */
-            if (*format == '.')
-            {
-                format++;
-                opts.precision_specified = 1;
-                if (*format == '*')
-                {
-                    int p = va_arg(args, int);
-                    if (p >= 0)
-                    {
-                        opts.precision = p;
-                    }
-                    else
-                    {
-                        /* negative precision means it's ignored */
-                        opts.precision_specified = 0;
-                        opts.precision = 0;
-                    }
-                    format++;
-                }
-                else
-                {
-                    opts.precision = 0;
-                    while (isdigit((unsigned char)*format))
-                    {
-                        opts.precision = opts.precision * 10 + (*format - '0');
-                        format++;
-                    }
-                }
-            }
-
-            /* parse length */
-            if (*format == 'h' || *format == 'l')
-            {
-                opts.length = *format;
-                format++;
-            }
-
-            if (*format == '\0')
-            {
-                va_end(args);
-                return (-1);
-            }
-
-            switch (*format)
-            {
-            case 'c':
-                count += print_char(args, &opts);
-                break;
-
-            case 's':
-                count += print_string(args, &opts);
-                break;
-
-            case '%':
-                count += print_percent(args, &opts);
-                break;
-
-            case 'd':
-            case 'i':
-                count += print_number(args, &opts);
-                break;
-
-            case 'u':
-                count += print_unsigned(args, &opts, 10, 0);
-                break;
-
-            case 'o':
-                count += print_unsigned(args, &opts, 8, 0);
-                break;
-
-            case 'x':
-                count += print_unsigned(args, &opts, 16, 0);
-                break;
-
-            case 'X':
-                count += print_unsigned(args, &opts, 16, 1);
-                break;
-
-            default:
-                count += _putchar('%');
-                count += _putchar(*format);
-                break;
-            }
+            for (i = 0; i < left_pad; i++)
+                total += _putchar('0');
         }
         else
         {
-            count += _putchar(*format);
+            for (i = 0; i < left_pad; i++)
+                total += _putchar(' ');
+            if (sign_char)
+                total += _putchar((char)sign_char);
+            if (prefix_len)
+            {
+                for (i = 0; i < prefix_len; i++)
+                    total += _putchar(prefix[i]);
+            }
         }
-
-        format++;
+    }
+    else
+    {
+        /* if dash flag, print sign and prefix first */
+        if (sign_char)
+            total += _putchar((char)sign_char);
+        if (prefix_len)
+        {
+            for (i = 0; i < prefix_len; i++)
+                total += _putchar(prefix[i]);
+        }
     }
 
-    va_end(args);
+    /* precision zeros */
+    for (i = 0; i < pad; i++)
+        total += _putchar('0');
+
+    /* print number digits */
+    for (i = 0; i < len; i++)
+        total += _putchar(str[i]);
+
+    /* right padding if dash */
+    if (opts->dash)
+    {
+        content_len = len + pad + prefix_len + (sign_char ? 1 : 0);
+        right_pad = (opts->width > content_len) ? (opts->width - content_len) : 0;
+        for (i = 0; i < right_pad; i++)
+            total += _putchar(' ');
+    }
+
+    return total;
+}
+
+/* Print a single char */
+int print_char(va_list args, fmt_options *opts)
+{
+    char c;
+    int count = 0;
+    int i;
+    int width = 0;
+
+    if (opts)
+        width = opts->width;
+
+    c = (char)va_arg(args, int);
+
+    if (width <= 1)
+    {
+        return _putchar(c);
+    }
+
+    if (!opts->dash)
+    {
+        for (i = 0; i < width - 1; i++)
+            count += _putchar(' ');
+        count += _putchar(c);
+    }
+    else
+    {
+        count += _putchar(c);
+        for (i = 0; i < width - 1; i++)
+            count += _putchar(' ');
+    }
+
     return count;
+}
+
+/* Print a string */
+int print_string(va_list args, fmt_options *opts)
+{
+    char *s = va_arg(args, char *);
+    int count = 0;
+    int len;
+    int i;
+
+    if (!s)
+        s = "(null)";
+
+    /* apply precision: maximum characters printed */
+    len = (int)strlen(s);
+    if (opts->precision_specified && opts->precision < len)
+        len = opts->precision;
+
+    /* width handling */
+    if (!opts->dash && opts->width > len)
+    {
+        for (i = 0; i < opts->width - len; i++)
+            count += _putchar(' ');
+    }
+
+    for (i = 0; i < len; i++)
+        count += _putchar(s[i]);
+
+    if (opts->dash && opts->width > len)
+    {
+        for (i = 0; i < opts->width - len; i++)
+            count += _putchar(' ');
+    }
+
+    return count;
+}
+
+/* Print percent sign */
+int print_percent(va_list args, fmt_options *opts)
+{
+    (void)args;
+    (void)opts;
+    return _putchar('%');
+}
+
+/* helper: integer to string for unsigned long using buffer (returns pointer) */
+static char *ultoa_base(unsigned long value, int base, int uppercase, char *buf, int bufsize)
+{
+    const char *digits = uppercase ? "0123456789ABCDEF" : "0123456789abcdef";
+    int i = 0;
+    int j;
+
+    if (value == 0)
+    {
+        buf[i++] = '0';
+        buf[i] = '\0';
+        return buf;
+    }
+
+    while (value && i < bufsize - 1)
+    {
+        buf[i++] = digits[value % base];
+        value /= base;
+    }
+    /* reverse */
+    for (j = 0; j < i / 2; j++)
+    {
+        char t = buf[j];
+        buf[j] = buf[i - 1 - j];
+        buf[i - 1 - j] = t;
+    }
+    buf[i] = '\0';
+    return buf;
+}
+
+/* Print signed number with flags/width/precision/length */
+int print_number(va_list args, fmt_options *opts)
+{
+    long val = 0;
+    int negative = 0;
+    char buf[70];
+
+    if (opts->length == 'l')
+        val = va_arg(args, long);
+    else if (opts->length == 'h')
+        val = (short)va_arg(args, int);
+    else
+        val = va_arg(args, int);
+
+    if (val < 0)
+    {
+        negative = 1;
+        /* careful with LONG_MIN */
+        if (opts->length == 'l')
+            val = (unsigned long)(-(long)val);
+        else
+            val = -val;
+    }
+
+    /* convert absolute value to string */
+    ultoa_base((unsigned long)val, 10, 0, buf, sizeof(buf));
+
+    /* prefix is handled by print_number_base_str (sign handled separately) */
+    return print_number_base_str(buf, opts, negative, NULL);
+}
+
+/* Print unsigned number with base, using flags/length */
+int print_unsigned(va_list args, fmt_options *opts, int base, int uppercase)
+{
+    unsigned long val = 0;
+    char buf[70];
+    const char *prefix = NULL;
+    char prefix_buf[3] = {0};
+
+    if (opts->length == 'l')
+        val = va_arg(args, unsigned long);
+    else if (opts->length == 'h')
+        val = (unsigned short)va_arg(args, unsigned int);
+    else
+        val = va_arg(args, unsigned int);
+
+    /* alternate form '#' */
+    if (opts->hash && val != 0)
+    {
+        if (base == 8)
+        {
+            prefix_buf[0] = '0';
+            prefix_buf[1] = '\0';
+            prefix = prefix_buf;
+        }
+        else if (base == 16)
+        {
+            prefix_buf[0] = '0';
+            prefix_buf[1] = uppercase ? 'X' : 'x';
+            prefix_buf[2] = '\0';
+            prefix = prefix_buf;
+        }
+    }
+
+    ultoa_base(val, base, uppercase, buf, sizeof(buf));
+    return print_number_base_str(buf, opts, 0, prefix);
 }

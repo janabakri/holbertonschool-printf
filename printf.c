@@ -46,8 +46,22 @@ int _printf(const char *format, ...)
                 format++;
             }
 
-            /* parse width (number only for now) */
-            if (isdigit((unsigned char)*format))
+            /* parse width (number or *) */
+            if (*format == '*')
+            {
+                int w = va_arg(args, int);
+                if (w < 0)
+                {
+                    opts.dash = 1;
+                    opts.width = -w;
+                }
+                else
+                {
+                    opts.width = w;
+                }
+                format++;
+            }
+            else if (isdigit((unsigned char)*format))
             {
                 opts.width = 0;
                 while (isdigit((unsigned char)*format))
@@ -57,16 +71,34 @@ int _printf(const char *format, ...)
                 }
             }
 
-            /* parse precision */
+            /* parse precision ('.' followed by number or '*') */
             if (*format == '.')
             {
                 format++;
                 opts.precision_specified = 1;
-                opts.precision = 0;
-                while (isdigit((unsigned char)*format))
+                if (*format == '*')
                 {
-                    opts.precision = opts.precision * 10 + (*format - '0');
+                    int p = va_arg(args, int);
+                    if (p >= 0)
+                    {
+                        opts.precision = p;
+                    }
+                    else
+                    {
+                        /* negative precision means it's ignored */
+                        opts.precision_specified = 0;
+                        opts.precision = 0;
+                    }
                     format++;
+                }
+                else
+                {
+                    opts.precision = 0;
+                    while (isdigit((unsigned char)*format))
+                    {
+                        opts.precision = opts.precision * 10 + (*format - '0');
+                        format++;
+                    }
                 }
             }
 
