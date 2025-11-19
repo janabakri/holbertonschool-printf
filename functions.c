@@ -110,10 +110,34 @@ int print_number_base_str(const char *str, fmt_options *opts, int negative, cons
 int print_char(va_list args, fmt_options *opts)
 {
     char c;
+    int count = 0;
+    int i;
+    int width = 0;
 
-    (void)opts;
+    if (opts)
+        width = opts->width;
+
     c = (char)va_arg(args, int);
-    return _putchar(c);
+
+    if (width <= 1)
+    {
+        return _putchar(c);
+    }
+
+    if (!opts->dash)
+    {
+        for (i = 0; i < width - 1; i++)
+            count += _putchar(' ');
+        count += _putchar(c);
+    }
+    else
+    {
+        count += _putchar(c);
+        for (i = 0; i < width - 1; i++)
+            count += _putchar(' ');
+    }
+
+    return count;
 }
 
 /* Print a string */
