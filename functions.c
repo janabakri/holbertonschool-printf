@@ -322,3 +322,50 @@ int print_unsigned(va_list args, fmt_options *opts, int base, int uppercase)
     }
     return print_number_base_str(buf, opts, 0, prefix);
 }
+
+/* Print a reversed string (custom %r) */
+int print_reverse(va_list args, fmt_options *opts)
+{
+    char *s;
+    int len;
+    int i;
+    int count = 0;
+    int width = 0;
+    int to_print;
+
+    s = va_arg(args, char *);
+    if (!s)
+        s = "(null)";
+
+    /* length of string */
+    len = (int)strlen(s);
+
+    /* apply precision: maximum characters printed */
+    if (opts && opts->precision_specified && opts->precision < len)
+        to_print = opts->precision;
+    else
+        to_print = len;
+
+    if (opts)
+        width = opts->width;
+
+    /* width padding on the left if not dash */
+    if (!opts || !opts->dash)
+    {
+        for (i = 0; i < width - to_print; i++)
+            count += _putchar(' ');
+    }
+
+    /* print in reverse order the first to_print characters */
+    for (i = to_print - 1; i >= 0; i--)
+        count += _putchar(s[i]);
+
+    /* right padding if dash */
+    if (opts && opts->dash)
+    {
+        for (i = 0; i < width - to_print; i++)
+            count += _putchar(' ');
+    }
+
+    return count;
+}
