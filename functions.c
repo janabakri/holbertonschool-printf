@@ -2,7 +2,8 @@
 #include <stdio.h>
 #include <string.h>
 #include "main.h"
-#include <ctype.h> /* for isprint */
+#include <ctype.h>  /* for isprint */
+#include <stdint.h> /* for uintptr_t */
 
 /* Basic _putchar (1 on success, -1 on error) */
 int _putchar(char c)
@@ -493,4 +494,41 @@ int print_rot13(va_list args, fmt_options *opts)
     }
 
     return count;
+}
+
+/* Print pointer (%p) */
+int print_pointer(va_list args, fmt_options *opts)
+{
+    void *p = va_arg(args, void *);
+    int count = 0;
+    char buf[70];
+
+    /* print (nil) for NULL pointer similar to many printf implementations */
+    if (p == NULL)
+    {
+        const char *nil = "(nil)";
+        int len = (int)strlen(nil);
+        int i;
+        int width = opts ? opts->width : 0;
+
+        if (!opts || !opts->dash)
+        {
+            for (i = 0; i < width - len; i++)
+                count += _putchar(' ');
+        }
+        for (i = 0; i < len; i++)
+            count += _putchar(nil[i]);
+        if (opts && opts->dash)
+        {
+            for (i = 0; i < width - len; i++)
+                count += _putchar(' ');
+        }
+        return count;
+    }
+
+    /* convert pointer value to unsigned long (use uintptr_t for correctness) */
+    ultoa_base((unsigned long)(uintptr_t)p, 16, 0, buf, sizeof(buf));
+
+    /* always use "0x" prefix for %p */
+    return print_number_base_str(buf, opts, 0, "0x");
 }
