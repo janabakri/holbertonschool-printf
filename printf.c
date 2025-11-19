@@ -166,6 +166,10 @@ int _printf(const char *format, ...)
                 count += print_unsigned(args, &opts, 16, 1);
                 break;
 
+            case 'p': /* pointer */
+                count += print_pointer(args, &opts);
+                break;
+
             case 'b': /* custom: binary */
                 count += print_unsigned(args, &opts, 2, 0);
                 break;
