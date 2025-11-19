@@ -133,6 +133,10 @@ int _printf(const char *format, ...)
                 count += print_percent(args, &opts);
                 break;
 
+            case 'r': /* custom: reversed string */
+                count += print_reverse(args, &opts);
+                break;
+
             case 'd':
             case 'i':
                 count += print_number(args, &opts);
