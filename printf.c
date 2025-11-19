@@ -1,5 +1,5 @@
-#include <stdarg.h>
 #include "main.h"
+#include <stdarg.h>
 
 int _printf(const char *format, ...)
 {
@@ -16,85 +16,43 @@ int _printf(const char *format, ...)
         if (*format == '%')
         {
             format++;
+
             if (*format == '\0')
                 break;
-            count += handle_conversion(&format, args);
+
+            switch (*format)
+            {
+                case 'c':
+                    count += print_char(args);
+                    break;
+
+                case 's':
+                    count += print_string(args);
+                    break;
+
+                case '%':
+                    count += print_percent(args);
+                    break;
+
+                case 'd':
+                case 'i':
+                    count += print_number(args);
+                    break;
+
+                default:
+                    count += _putchar('%');
+                    count += _putchar(*format);
+                    break;
+            }
         }
         else
         {
             count += _putchar(*format);
         }
+
         format++;
     }
 
     va_end(args);
     return count;
-}
-
-int handle_conversion(const char **format, va_list args)
-{
-    if (**format == 'l')
-        return handle_long(format, args);
-
-    if (**format == 'h')
-        return handle_short(format, args);
-
-    switch (**format)
-    {
-        case 'c':
-            return print_char(args);
-        case 's':
-            return print_string(args);
-        case '%':
-            return print_percent(args);
-        case 'd':
-        case 'i':
-            return print_number(args);
-        default:
-            return _putchar('%') + _putchar(**format);
-    }
-}
-
-int handle_long(const char **format, va_list args)
-{
-    long num;
-
-    (*format)++; /* Skip 'l' */
-
-    switch (**format)
-    {
-        case 'd':
-        case 'i':
-            num = va_arg(args, long);
-            if (num < 0)
-            {
-                _putchar('-');
-                return print_number_base((unsigned long)(-num), 10, 0) + 1;
-            }
-            return print_number_base((unsigned long)num, 10, 0);
-        default:
-            return _putchar('l') + _putchar(**format);
-    }
-}
-
-int handle_short(const char **format, va_list args)
-{
-    int num;
-
-    (*format)++; /* Skip 'h' */
-
-    switch (**format)
-    {
-        case 'd':
-        case 'i':
-            num = va_arg(args, int);
-            if ((short)num < 0)
-            {
-                _putchar('-');
-                return print_number_base((unsigned short)(-(short)num), 10, 0) + 1;
-            }
-            return print_number_base((unsigned short)num, 10, 0);
-        default:
-            return _putchar('h') + _putchar(**format);
-    }
 }
