@@ -1,16 +1,84 @@
-Implementing the _printf function is one of the most iconic projects in the Holberton School low-level programming curriculum. It pushes students to look beneath the surface of the standard C library and understand how formatting, buffering, and variadic functions actually work behind the scenes.
+# holbertonschool-printf
 
-At its core, _printf is a custom re-creation of the well-known printf function in C. While the standard library version is extremely powerful and packed with features, this project focuses on building that functionality step by step—starting from the simplest behavior and gradually expanding until the function becomes robust and versatile.
+Custom implementation of a subset of the C standard library `printf` function for educational purposes.
 
-The function takes a format string and a variable number of arguments. As it scans through the string, it prints ordinary characters directly, but reacts specially whenever it encounters the % symbol. Each % introduces a conversion specifier, a code that tells _printf how to interpret and print the next argument. In the early stages of the project, the supported specifiers include characters (%c), strings (%s), percent signs (%%), and signed integers (%d and %i). As the project grows, additional specifiers like %b, %u, %o, %x, %X, %S, and %p are added, along with support for flags, width, precision, and length modifiers—all of which mirror the behavior of the standard printf.
+This repository implements `_printf` and a set of supporting helpers. It is written to compile with `-std=gnu89` and follows the Holberton/low-level project constraints.
 
-One of the most educational aspects of this project is the use of the stdarg.h macros to handle the variable arguments. Students learn to iterate through arguments dynamically using va_list, va_start, and va_arg, giving them a deeper appreciation for how C manages functions with flexible numbers of parameters.
+## Features implemented
 
-Another important element is the strict adherence to the Holberton coding style: no global variables, no more than five functions per file, and clear, modular implementation. This encourages clean code organization and thoughtful design.
+Supported standard conversion specifiers:
 
-Through countless tests, debugging sessions, and incremental feature additions, _printf evolves from a simple text printer into a fully functional formatting engine. Beyond strengthening technical skills, the project builds teamwork, communication, and problem-solving abilities—skills that matter just as much as the code itself.
+- %c — character
+- %s — string
+- %% — literal percent sign
+- %d, %i — signed decimal integers
+- %u — unsigned decimal
+- %o — unsigned octal
+- %x, %X — unsigned hexadecimal (lower/upper)
+- %p — pointer (prints as 0x...)
 
-Authors
+Supported flags and behaviors:
+
+- Flags: +, space, #, 0, - (basic handling)
+- Field width (numeric and \* form)
+- Precision (numeric and \* form)
+- Length modifiers: h, l for integer conversions
+- Precision rules for integers/strings (including suppression when precision is 0 and value is 0)
+
+Custom (extra) conversion specifiers implemented:
+
+- %b — prints unsigned integer as binary
+- %r — prints string in reverse
+- %R — prints string with ROT13
+- %S — prints string but non-printable characters as \xHH
+
+## Notes / limitations
+
+- This is a learning implementation and does not aim to be a drop-in replacement for the libc `printf`.
+- Some subtle edge-cases of the standard `printf` (exact interaction ordering of flags, locale-dependent behavior, and platform-specific corner cases) may differ.
+- The implementation keeps a single `_putchar` in `functions.c`. Make sure you do not compile another `_putchar.c` alongside it (duplicate symbol).
+
+## Files of interest
+
+- `printf.c` — the `_printf` entry point and format string parser
+- `functions.c` — printing helpers (characters, strings, numbers, custom specifiers)
+- `main.h` — shared prototypes and the `fmt_options` struct
+
+## Build & run (Windows PowerShell)
+
+Open PowerShell in the project folder and run:
+
+```powershell
+# compile everything (MinGW/GCC)
+gcc -Wall -Werror -Wextra -pedantic -std=gnu89 -Wno-format *.c -o _printf_test.exe
+
+# run a test binary (if you have an included main/test runner)
+.\_printf_test.exe
+```
+
+## Quick manual tests
+
+After compiling, you can run small checks from a `main` that calls `_printf`:
+
+```c
+_printf("Hello %c %s %d%%\n", 'A', "world", 42);
+_printf("%8d\n", 42);            // width
+_printf("%08d\n", 42);           // zero pad
+_printf("%+d\n", 42);            // plus flag
+_printf("%#x\n", 0x1a);          // alternate form for hex
+_printf("%r\n", "hello");     // reversed string
+_printf("%R\n", "Hello");     // ROT13
+_printf("%S\n", "\x01\x02A"); // non-printable
+_printf("%b\n", 10);             // binary
+_printf("%p\n", (void*)ptr);    // pointer
+```
+
+## Testing suggestions
+
+- Compare `_printf` against the standard `printf` for many format strings to find mismatches. Start with simple cases (c, s, d) then add flags, width, precision and custom specifiers.
+- Add unit tests (small C mains) for edge cases: `INT_MIN`, `LONG_MIN`, `NULL` strings, precision `0` with value `0`, `*` width/precision.
+
+## Authors
 
 Jana Rasheed Bakri
 Badr Abdulaziz Almutairi
