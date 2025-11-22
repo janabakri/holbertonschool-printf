@@ -44,18 +44,6 @@ Custom (extra) conversion specifiers implemented:
 - `functions.c` — printing helpers (characters, strings, numbers, custom specifiers)
 - `main.h` — shared prototypes and the `fmt_options` struct
 
-## Build & run (Windows PowerShell)
-
-Open PowerShell in the project folder and run:
-
-```powershell
-# compile everything (MinGW/GCC)
-gcc -Wall -Werror -Wextra -pedantic -std=gnu89 -Wno-format *.c -o _printf_test.exe
-
-# run a test binary (if you have an included main/test runner)
-.\_printf_test.exe
-```
-
 ## Quick manual tests
 
 After compiling, you can run small checks from a `main` that calls `_printf`:
